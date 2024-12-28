@@ -1,3 +1,5 @@
+package Railroads;
+
 import Models.Tile;
 
 import java.util.Random;
@@ -8,7 +10,7 @@ public class Board {
     private final int STATION_COUNT;
     private final int[][] stations;
 
-    private Random rand;
+    private final Random rand;
 
     public Board(int width, int height, int stationCount) {
         WIDTH = width;
@@ -100,5 +102,17 @@ public class Board {
                 setTile(i, j, tile);
             }
         }
+    }
+
+    public int getHeight(){
+        return HEIGHT;
+    }
+
+    public int getWidth(){
+        return WIDTH;
+    }
+
+    public int getSize(){
+        return WIDTH * HEIGHT;
     }
 }
