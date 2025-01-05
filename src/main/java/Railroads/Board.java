@@ -1,4 +1,4 @@
-package Railroads;
+package railroads;
 
 import Models.Tile;
 

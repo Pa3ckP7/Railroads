@@ -1,8 +1,8 @@
-package GeneticEvo;
+package genetic;
 
-import Models.Gene;
-import Models.Tile;
-import Railroads.Board;
+import models.Gene;
+import models.Tile;
+import railroads.Board;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -32,5 +32,12 @@ public class Agent {
             genome.add(new Gene(x, y, tile));
         }
         return new Agent (board, genome);
+    }
+
+    public Board solve(){
+        for (Gene gene : genome) {
+            board.setTile(gene.getX(), gene.getY(), gene.getTileType());
+        }
+        return board;
     }
 }

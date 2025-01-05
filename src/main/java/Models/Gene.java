@@ -1,4 +1,4 @@
-package Models;
+package models;
 
 public class Gene {
     private final int x;

@@ -1,4 +1,4 @@
-package Railroads;
+package railroads;
 
 public class Main {
     public static void main(String[] args) {
