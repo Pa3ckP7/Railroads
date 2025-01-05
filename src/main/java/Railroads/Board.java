@@ -1,6 +1,6 @@
 package railroads;
 
-import Models.Tile;
+import models.Tile;
 
 import java.util.Random;
 
@@ -98,7 +98,7 @@ public class Board {
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
                 if(Tile.isStation(getTile(i, j)))continue;
-                byte tile = (byte)(rand.nextInt(Tile.NONE_TILE, Tile.ALL_TILE)&0b1111);
+                byte tile = Tile.validTiles[rand.nextInt(Tile.validTiles.length)];
                 setTile(i, j, tile);
             }
         }

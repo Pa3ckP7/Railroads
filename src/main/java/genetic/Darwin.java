@@ -88,7 +88,7 @@ public class Darwin {
 //            newGeneration.add(agentA);
 //            newGeneration.add(agentB);
 //        }
-        Collection<Agent> newPopulation = this.repopulateFunc.repopulate(this.agents, this.crossoverFunc, this.maxAgents, this.rand.nextLong());
+        Collection<Agent> newPopulation = this.repopulateFunc.repopulate(this.agents, scores, this.crossoverFunc, this.maxAgents, this.rand.nextLong());
         ArrayList<Agent> newGeneration = new ArrayList<>(newPopulation);
 
         EvolutionResults evoResults = new EvolutionResults(this.generation, bestAgent, maxScore, scores);

@@ -8,6 +8,11 @@ import java.util.Random;
 
 public class Agent {
     private ArrayList<Gene> genome;
+
+    public Board getBoard() {
+        return board;
+    }
+
     private Board board;
     private float boardFill;
 
@@ -15,6 +20,31 @@ public class Agent {
         this.board = board;
         this.genome = genome;
         this.boardFill = (float)(genome.size()/board.getSize());
+    }
+
+    public ArrayList<Gene> getGenome() {
+        return genome;
+    }
+
+    public Gene getGene(int x, int y){
+        for(Gene gene : genome){
+            if(gene.getX() == x && gene.getY() == y) return gene;
+        }
+        return null;
+    }
+
+    public Gene eraseGene(int x, int y){
+        Gene gene = getGene(x, y);
+        genome.remove(gene);
+        return gene;
+    }
+
+    public void insertGene(Gene gene){
+        Gene ogene = getGene(gene.getX(), gene.getY());
+        if(ogene != null){
+            ogene.setTileType((byte) (gene.getTileType()| ogene.getTileType()));
+        }
+        genome.add(gene);
     }
 
     public static Agent withRandomGenome(Board board, float minFill, float maxFill, long seed) {

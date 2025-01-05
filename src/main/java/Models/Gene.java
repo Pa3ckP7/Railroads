@@ -17,16 +17,9 @@ public class Gene {
         return x;
     }
 
-    public byte addDirection(byte direction) {
-        tileType = Tile.add(tileType, direction);
-        return tileType;
+    public void setTileType(byte tileType) {
+        this.tileType = tileType;
     }
-
-    public byte removeDirection(byte direction) {
-        tileType = Tile.subtract(tileType, direction);
-        return tileType;
-    }
-
 
     public Gene() {
         this.x = 0;

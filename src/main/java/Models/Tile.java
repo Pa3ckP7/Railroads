@@ -3,10 +3,10 @@ package models;
 public class Tile {
 
     public static final byte NONE_TILE = 0b000000;
-    public static final byte UP_TILE = 0b001000;
-    public static final byte DOWN_TILE = 0b000100;
-    public static final byte LEFT_TILE = 0b000010;
-    public static final byte RIGHT_TILE = 0b000001;
+    private static final byte UP_TILE = 0b001000;
+    private static final byte DOWN_TILE = 0b000100;
+    private static final byte LEFT_TILE = 0b000010;
+    private static final byte RIGHT_TILE = 0b000001;
     public static final byte ALL_TILE = 0b001111;
     public static final byte HORIZONTAL_TILE = LEFT_TILE | RIGHT_TILE;
     public static final byte VERTICAL_TILE = UP_TILE | DOWN_TILE;
@@ -19,6 +19,20 @@ public class Tile {
     public static final byte LEFT_T_TILE = VERTICAL_TILE | LEFT_TILE;
     public static final byte RIGHT_T_TILE = VERTICAL_TILE | RIGHT_TILE;
     public static final byte STATION = 0b10000;
+    public static final byte[] validTiles = {
+            NONE_TILE,
+            ALL_TILE,
+            HORIZONTAL_TILE,
+            VERTICAL_TILE,
+            UP_RIGHT_TILE,
+            DOWN_RIGHT_TILE,
+            DOWN_LEFT_TILE,
+            UP_LEFT_TILE,
+            UP_T_TILE,
+            DOWN_T_TILE,
+            LEFT_T_TILE,
+            RIGHT_T_TILE,
+    };
 
     public static boolean isStation(byte tile){
         return (tile&STATION)>0;
@@ -65,6 +79,30 @@ public class Tile {
             case RIGHT_T_TILE -> Character.toString(0x2523);
             case STATION -> "S";
             default -> "?";
+        };
+    }
+
+    public static boolean isTurn(byte tileType){
+        return switch (tileType){
+            case UP_LEFT_TILE, UP_RIGHT_TILE, DOWN_LEFT_TILE, DOWN_RIGHT_TILE -> true;
+            default -> false;
+        };
+    }
+
+    public static boolean isTJunction(byte tileType){
+        return switch (tileType){
+            case UP_T_TILE, RIGHT_T_TILE, LEFT_T_TILE, DOWN_T_TILE -> true;
+            default -> false;
+        };
+    }
+
+    public static int getValue(byte tile){
+        return switch ((Byte)tile){
+            case Tile.ALL_TILE -> 4;
+            case Byte b when Tile.isTJunction(b) -> 3;
+            case Byte b when Tile.isTJunction(b)-> 2;
+            case Tile.HORIZONTAL_TILE, Tile.VERTICAL_TILE -> 2;
+            default -> 0;
         };
     }
 }
