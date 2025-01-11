@@ -2,6 +2,8 @@ package models;
 
 public class Gene {
 
+    public static final int GENE_SIZE = 5;
+
     public static byte[] makeGene(short x, short y, byte tile){
         byte[] gene = new byte[5];
         gene[1] = (byte)x;
@@ -51,5 +53,12 @@ public class Gene {
         position = position << 16;
         position = position|y;
         return position;
+    }
+
+    public static short[] positionToXY(int position){
+        short x = (short)(position>>16);
+        short y = (short)(position);
+
+        return new short[]{x, y};
     }
 }

@@ -8,7 +8,7 @@ public class Board {
     private final short WIDTH, HEIGHT;
     private final byte[] board;
     private final int STATION_COUNT;
-    private final int[][] stations;
+    private final short[][] stations;
 
     private final Random rand;
 
@@ -16,7 +16,7 @@ public class Board {
         WIDTH = width;
         HEIGHT = height;
         STATION_COUNT = stationCount;
-        stations = new int[STATION_COUNT][4];
+        stations = new short[STATION_COUNT][4];
         board = new byte[WIDTH * HEIGHT];
         rand = new Random();
         init_board();
@@ -26,7 +26,7 @@ public class Board {
         WIDTH = width;
         HEIGHT = height;
         STATION_COUNT = stationCount;
-        stations = new int[STATION_COUNT][4];
+        stations = new short[STATION_COUNT][4];
         board = new byte[WIDTH * HEIGHT];
         rand = new Random(seed);
         init_board();
@@ -46,8 +46,8 @@ public class Board {
                 int beginy = rand.nextInt(HEIGHT);
                 if (getTile(beginx, beginy) == Tile.STATION) continue;
                 setTile(beginx, beginy, Tile.STATION);
-                stations[i][0] = beginx;
-                stations[i][1] = beginy;
+                stations[i][0] = (short)beginx;
+                stations[i][1] = (short)beginy;
                 break;
             }
             while(true){
@@ -55,8 +55,8 @@ public class Board {
                 int endy = rand.nextInt(HEIGHT);
                 if (getTile(endx, endy) == Tile.STATION) continue;
                 setTile(endx, endy, Tile.STATION);
-                stations[i][2] = endx;
-                stations[i][3] = endy;
+                stations[i][2] = (short)endx;
+                stations[i][3] = (short)endy;
                 break;
             }
         }
@@ -114,5 +114,13 @@ public class Board {
 
     public int getSize(){
         return WIDTH * HEIGHT;
+    }
+
+    public short[][] getStations(){
+        return stations;
+    }
+
+    public byte[] getAllTiles(){
+        return board;
     }
 }

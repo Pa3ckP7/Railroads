@@ -79,4 +79,8 @@ public class Agent {
     public long getScore() {
         return Score;
     }
+
+    public Board getInitialBoard() {
+        return initialBoard;
+    }
 }

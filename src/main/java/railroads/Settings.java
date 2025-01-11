@@ -7,4 +7,5 @@ public class Settings {
     public final static float AGENT_MAX_FILL = 0.5f;
     public final static float MUTATION_CHANCE = 0.2f;
     public final static int MAX_TRAINS = 5;
+    public final static int MAX_AGENTS = 10;
 }

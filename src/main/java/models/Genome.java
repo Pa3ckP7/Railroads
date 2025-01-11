@@ -52,9 +52,11 @@ public class Genome {
         genes.put(key, Gene.getTile(gene));
     }
 
-    public void removeGene(short x, short y){
+    public byte[] removeGene(short x, short y){
         int key = Gene.xyToPosition(x, y);
+        byte[] gene = getGene(key);
         genes.remove(key);
+        return gene;
     }
 
     public void removeGene(int position){
