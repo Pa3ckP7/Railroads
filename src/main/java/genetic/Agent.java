@@ -1,15 +1,13 @@
 package genetic;
 
 import models.Gene;
-import models.Genome;
 import models.Tile;
 import railroads.Board;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
 public class Agent {
-    private Genome genome;
+    private ArrayList<Gene> genome;
 
     public Board getBoard() {
         return board;
@@ -18,69 +16,58 @@ public class Agent {
     private Board board;
     private float boardFill;
 
-    private Board initialBoard;
-    private long Score = 0;
-
-    public Agent (Board board, Genome genome) {
+    public Agent (Board board, ArrayList<Gene> genome) {
         this.board = board;
-        this.initialBoard = board;
         this.genome = genome;
         this.boardFill = (float)(genome.size()/board.getSize());
     }
 
-    public Genome getGenome() {
+    public ArrayList<Gene> getGenome() {
         return genome;
     }
 
-    public byte[] getGene(short x, short y){
-        return genome.getGene(x, y);
+    public Gene getGene(int x, int y){
+        for(Gene gene : genome){
+            if(gene.getX() == x && gene.getY() == y) return gene;
+        }
+        return null;
     }
 
-    public byte[] eraseGene(short x, short y){
-        byte[] gene = getGene(x, y);
-        genome.removeGene(x, y);
+    public Gene eraseGene(int x, int y){
+        Gene gene = getGene(x, y);
+        genome.remove(gene);
         return gene;
     }
 
-    public void insertGene(byte[] gene){
-        genome.addGene(gene);
+    public void insertGene(Gene gene){
+        Gene ogene = getGene(gene.getX(), gene.getY());
+        if(ogene != null){
+            ogene.setTileType((byte) (gene.getTileType()| ogene.getTileType()));
+        }
+        genome.add(gene);
     }
 
     public static Agent withRandomGenome(Board board, float minFill, float maxFill, long seed) {
         Random rand = new Random(seed);
-        Genome genome = new Genome();
+        ArrayList<Gene> genome = new ArrayList<>();
         float boardFill = rand.nextFloat(minFill,maxFill);
         int geneCount = (int) (board.getSize()*boardFill);
         int w = board.getWidth();
         int h = board.getHeight();
         for (int i = 0; i < geneCount; i++) {
-            byte tile = Tile.validTiles[rand.nextInt(Tile.validTiles.length)];
-            short x = (short)rand.nextInt(Short.MAX_VALUE);
-            short y = (short)rand.nextInt(Short.MAX_VALUE);
-            byte[] gene = Gene.makeGene(x,y, tile);
-            genome.addGene(gene);
+            byte tile = (byte) (rand.nextInt(Tile.NONE_TILE, Tile.ALL_TILE)&0b1111);
+            int x = rand.nextInt(w);
+            int y = rand.nextInt(h);
+            if(Tile.isStation(board.getTile(x, y)))continue;
+            genome.add(new Gene(x, y, tile));
         }
         return new Agent (board, genome);
     }
 
     public Board solve(){
-        Integer[] positions = genome.getGenePositions();
-        for(int position: positions){
-            byte[] gene = genome.getGene(position);
-            board.setTile(Gene.getX(gene), Gene.getY(gene), Gene.getTile(gene));
+        for (Gene gene : genome) {
+            board.setTile(gene.getX(), gene.getY(), gene.getTileType());
         }
         return board;
-    }
-
-    public void setScore(long score) {
-        this.Score = score;
-    }
-
-    public long getScore() {
-        return Score;
-    }
-
-    public Board getInitialBoard() {
-        return initialBoard;
     }
 }

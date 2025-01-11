@@ -5,28 +5,28 @@ import models.Tile;
 import java.util.Random;
 
 public class Board {
-    private final short WIDTH, HEIGHT;
+    private final int WIDTH, HEIGHT;
     private final byte[] board;
     private final int STATION_COUNT;
-    private final short[][] stations;
+    private final int[][] stations;
 
     private final Random rand;
 
-    public Board(short width, short height, int stationCount) {
+    public Board(int width, int height, int stationCount) {
         WIDTH = width;
         HEIGHT = height;
         STATION_COUNT = stationCount;
-        stations = new short[STATION_COUNT][4];
+        stations = new int[STATION_COUNT][4];
         board = new byte[WIDTH * HEIGHT];
         rand = new Random();
         init_board();
     }
 
-    public Board(short width, short height, int stationCount, long seed) {
+    public Board(int width, int height, int stationCount, long seed) {
         WIDTH = width;
         HEIGHT = height;
         STATION_COUNT = stationCount;
-        stations = new short[STATION_COUNT][4];
+        stations = new int[STATION_COUNT][4];
         board = new byte[WIDTH * HEIGHT];
         rand = new Random(seed);
         init_board();
@@ -46,8 +46,8 @@ public class Board {
                 int beginy = rand.nextInt(HEIGHT);
                 if (getTile(beginx, beginy) == Tile.STATION) continue;
                 setTile(beginx, beginy, Tile.STATION);
-                stations[i][0] = (short)beginx;
-                stations[i][1] = (short)beginy;
+                stations[i][0] = beginx;
+                stations[i][1] = beginy;
                 break;
             }
             while(true){
@@ -55,8 +55,8 @@ public class Board {
                 int endy = rand.nextInt(HEIGHT);
                 if (getTile(endx, endy) == Tile.STATION) continue;
                 setTile(endx, endy, Tile.STATION);
-                stations[i][2] = (short)endx;
-                stations[i][3] = (short)endy;
+                stations[i][2] = endx;
+                stations[i][3] = endy;
                 break;
             }
         }
@@ -114,13 +114,5 @@ public class Board {
 
     public int getSize(){
         return WIDTH * HEIGHT;
-    }
-
-    public short[][] getStations(){
-        return stations;
-    }
-
-    public byte[] getAllTiles(){
-        return board;
     }
 }

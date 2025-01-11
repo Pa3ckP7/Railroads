@@ -3,10 +3,10 @@ package models;
 public class Tile {
 
     public static final byte NONE_TILE = 0b000000;
-    public static final byte UP_TILE = 0b001000;
-    public static final byte DOWN_TILE = 0b000100;
-    public static final byte LEFT_TILE = 0b000010;
-    public static final byte RIGHT_TILE = 0b000001;
+    private static final byte UP_TILE = 0b001000;
+    private static final byte DOWN_TILE = 0b000100;
+    private static final byte LEFT_TILE = 0b000010;
+    private static final byte RIGHT_TILE = 0b000001;
     public static final byte ALL_TILE = 0b001111;
     public static final byte HORIZONTAL_TILE = LEFT_TILE | RIGHT_TILE;
     public static final byte VERTICAL_TILE = UP_TILE | DOWN_TILE;
@@ -38,9 +38,14 @@ public class Tile {
         return (tile&STATION)>0;
     }
 
-    public static byte join(byte tileA, byte tileB){
-        if(isStation(tileA) || isStation(tileB)) return tileA;
-        return (byte)(tileA&tileB);
+    public static byte add(byte tileA, byte tileB) {
+        if (isStation(tileA)) return tileA;
+        return (byte)(tileA|tileB);
+    }
+
+    public static byte subtract(byte tileA, byte tileB) {
+        if (isStation(tileA)) return tileA;
+        return (byte)(tileA&~tileB);
     }
 
     public static int compare(byte tileA, byte tileB) {
@@ -99,9 +104,5 @@ public class Tile {
             case Tile.HORIZONTAL_TILE, Tile.VERTICAL_TILE -> 2;
             default -> 0;
         };
-    }
-
-    public static boolean hasDirection(byte tile, byte direction){
-        return (tile&direction)>0;
     }
 }
