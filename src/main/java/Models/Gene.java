@@ -1,62 +1,55 @@
 package models;
 
 public class Gene {
-    private final int x;
-    private final int y;
-    private byte tileType;
 
-    public byte getTileType() {
-        return tileType;
+    public static byte[] makeGene(short x, short y, byte tile){
+        byte[] gene = new byte[5];
+        gene[1] = (byte)x;
+        gene[0] = (byte)(x>>8);
+        gene[3] = (byte)y;
+        gene[2] = (byte)(y>>8);
+        gene[4] = tile;
+
+        return gene;
     }
 
-    public int getY() {
-        return y;
+    public static byte[] makeGene(int position, byte tile){
+        short y = (short)(position);
+        short x = (short)(position>>16);
+        return makeGene(x, y, tile);
     }
 
-    public int getX() {
+    public static byte getTile(byte[] gene){
+        return gene[4];
+    }
+
+    public static int getPosition(byte[] gene){
+        int position = getX(gene);
+        position = position << 16;
+        position = position | (short)(getY(gene));
+        return position;
+    }
+
+    public static short getX(byte[] gene){
+        short x = 0;
+        x = (short) (x|gene[0]);
+        x = (short) (x<<8);
+        x = (short) (x|gene[1]);
         return x;
     }
 
-    public void setTileType(byte tileType) {
-        this.tileType = tileType;
+    public static short getY(byte[] gene){
+        short y = 0;
+        y = (short) (y|gene[2]);
+        y = (short) (y<<8);
+        y = (short) (y|gene[3]);
+        return y;
     }
 
-    public Gene() {
-        this.x = 0;
-        this.y = 0;
-        this.tileType = Tile.NONE_TILE;
-    }
-
-    public Gene(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.tileType = Tile.NONE_TILE;
-    }
-
-    public Gene(int x, int y, byte tileType) {
-        this.x = x;
-        this.y = y;
-        this.tileType = tileType;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Gene(%d,%d,%s)", x, y, Tile.toString(tileType));
-    }
-
-    public int compareTo(Gene gene) {
-        if (Tile.isStation(tileType)) return -1;
-        if (Tile.isStation(gene.tileType)) return -1;
-        int positionalDifference_x = this.x - gene.x;
-        int positionalDifference_y = this.y - gene.y;
-        int positionalDifference = (int)Math.ceil(Math.sqrt(positionalDifference_x * positionalDifference_x + positionalDifference_y * positionalDifference_y));
-        int geneDifference = Tile.compare(tileType, gene.tileType);
-
-        return positionalDifference+geneDifference;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Gene gene && compareTo(gene) == 0;
+    public static int xyToPosition(short x, short y){
+        int position = x;
+        position = position << 16;
+        position = position|y;
+        return position;
     }
 }

@@ -5,14 +5,14 @@ import models.Tile;
 import java.util.Random;
 
 public class Board {
-    private final int WIDTH, HEIGHT;
+    private final short WIDTH, HEIGHT;
     private final byte[] board;
     private final int STATION_COUNT;
     private final int[][] stations;
 
     private final Random rand;
 
-    public Board(int width, int height, int stationCount) {
+    public Board(short width, short height, int stationCount) {
         WIDTH = width;
         HEIGHT = height;
         STATION_COUNT = stationCount;
@@ -22,7 +22,7 @@ public class Board {
         init_board();
     }
 
-    public Board(int width, int height, int stationCount, long seed) {
+    public Board(short width, short height, int stationCount, long seed) {
         WIDTH = width;
         HEIGHT = height;
         STATION_COUNT = stationCount;

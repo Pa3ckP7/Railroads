@@ -38,14 +38,9 @@ public class Tile {
         return (tile&STATION)>0;
     }
 
-    public static byte add(byte tileA, byte tileB) {
-        if (isStation(tileA)) return tileA;
-        return (byte)(tileA|tileB);
-    }
-
-    public static byte subtract(byte tileA, byte tileB) {
-        if (isStation(tileA)) return tileA;
-        return (byte)(tileA&~tileB);
+    public static byte join(byte tileA, byte tileB){
+        if(isStation(tileA) || isStation(tileB)) return tileA;
+        return (byte)(tileA&tileB);
     }
 
     public static int compare(byte tileA, byte tileB) {
