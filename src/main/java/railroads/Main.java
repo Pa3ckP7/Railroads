@@ -30,7 +30,7 @@ public class Main {
         final long minScore = exAgents.stream().mapToLong(Agent::getScore).min().orElse(0);
         double[] scores = exAgents.stream().mapToDouble( x -> 1.0 - (x.getScore() - minScore)/(double)(maxScore - minScore)).toArray();
 
-        for(int i=0; newAgents.size() < Settings.MAX_AGENTS; i=(i+1)%scores.length) {
+        for(int i = 0; newAgents.size() < railroads.Settings.MAX_AGENTS; i=(i+1)%scores.length) {
             if(rand.nextDouble() > scores[i]) continue;
             newAgents.add(exAgents.get(i));
             if(newAgents.size()%2==0){
