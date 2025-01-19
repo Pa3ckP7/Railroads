@@ -27,11 +27,10 @@ public class Genome {
     public byte[] serialize(){
         byte[] serializedGenes = new byte[genes.size()*5];
         Integer[] keySet = genes.keySet().toArray(Integer[]::new);
+
         for(int i = 0; i < keySet.length; i++){
-            byte[] gene = Gene.makeGene(keySet[i], genes.get(i));
-            for(int j = 0; j < 5; j++){
-                serializedGenes[i*5+j] = gene[j];
-            }
+            byte[] gene = Gene.makeGene(keySet[i], genes.get(keySet[i]));
+            System.arraycopy(gene, 0, serializedGenes, i * 5, 5);
         }
         return serializedGenes;
     }

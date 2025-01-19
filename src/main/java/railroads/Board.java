@@ -88,7 +88,7 @@ public class Board {
                     System.out.print(c);
                     continue;
                 }
-                System.out.print(Tile.toString(getTile(j, i)));
+                System.out.print(getTile(j, i));
             }
             System.out.println();
         }

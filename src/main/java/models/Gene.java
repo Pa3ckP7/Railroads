@@ -16,8 +16,12 @@ public class Gene {
     }
 
     public static byte[] makeGene(int position, byte tile){
+
+
         short y = (short)(position);
         short x = (short)(position>>16);
+        //System.out.println("X: " + x + ", Y: " + y);
+        //System.out.println(Integer.toBinaryString(position));
         return makeGene(x, y, tile);
     }
 

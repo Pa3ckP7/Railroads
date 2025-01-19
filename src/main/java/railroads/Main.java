@@ -2,42 +2,73 @@ package railroads;
 
 import genetic.Agent;
 import genetic.Darwin;
+import graphics.RailroadsWindow;
 import models.Gene;
 import models.Genome;
 import models.Tile;
 import util.DataContainers.AgentSettings;
 import util.DataContainers.BoardSettings;
+import util.DataContainers.EvolutionResults;
 import util.helpers.CrossoverFunc;
 import util.helpers.EvalFunc;
 import util.helpers.RepopulateFunc;
 
+import java.sql.SQLOutput;
 import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
+        long seed = 19012025;
 
+        Darwin darwin = new Darwin(Settings.MAX_AGENTS, Main::crossover, Main::evaluation, Main::repopulate, seed);
+        byte[] init_board = darwin.getInitBoard().getAllTiles();
+        RailroadsWindow window = new RailroadsWindow(init_board);
 
-        long seed = 420;
+        //System.out.println("Gen 0");
 
+        while(true){
 
+            EvolutionResults res = darwin.evolve();
+            //if (res.generation() > 1) break;
+
+            //System.out.println("Gen " + res.generation());
+            window.updateAgentDisplay(res);
+
+        }
     }
 
-    public ArrayList<Agent> repopulate(Collection<Agent> agents, CrossoverFunc<Agent> crossoverFunc, long seed) {
+    public static ArrayList<Agent> repopulate(Collection<Agent> agents, CrossoverFunc<Agent> crossoverFunc, long seed) {
         ArrayList<Agent> newAgents = new ArrayList<>();
         ArrayList<Agent> exAgents = new ArrayList<>(agents);
         Random rand = new Random(seed);
         final long maxScore = exAgents.stream().mapToLong(Agent::getScore).max().orElse(1);
         final long minScore = exAgents.stream().mapToLong(Agent::getScore).min().orElse(0);
-        double[] scores = exAgents.stream().mapToDouble( x -> 1.0 - (x.getScore() - minScore)/(double)(maxScore - minScore)).toArray();
 
-        for(int i = 0; newAgents.size() < railroads.Settings.MAX_AGENTS; i=(i+1)%scores.length) {
-            if(rand.nextDouble() > scores[i]) continue;
+        //System.out.println("RMAX " + maxScore);
+        //System.out.println("RMIN " + minScore);
+
+        //double[] scores = exAgents.stream().mapToDouble( x -> 1.0 - (x.getScore() - minScore)/(double)(maxScore - minScore)).toArray();
+
+        for(int i = 0; newAgents.size() < railroads.Settings.MAX_AGENTS; i=(i+1)%exAgents.size()) {
+
+            Agent agent = exAgents.get(i);
+
+            long agentScoreRaw = agent.getScore();
+            double agentScore = 1 - (agentScoreRaw - minScore)/(double)(maxScore - minScore);
+
+            //System.out.println("RAW: "  + agentScoreRaw);
+            //System.out.println("NORM: " + agentScore);
+
+            if(rand.nextDouble() > agentScore) continue;
+            //System.out.println("Added");
             newAgents.add(exAgents.get(i));
             if(newAgents.size()%2==0){
                 Agent a = exAgents.removeLast();
                 Agent b = exAgents.removeLast();
-                newAgents.add(crossoverFunc.Cross(a,b, rand.nextLong()));
-                newAgents.add(crossoverFunc.Cross(b,a, rand.nextLong()));
+                Agent c1 = crossoverFunc.Cross(a,b, rand.nextLong());
+                Agent c2 = crossoverFunc.Cross(b,a, rand.nextLong());
+                newAgents.add(c1);
+                newAgents.add(c2);
                 newAgents.add(a);
                 newAgents.add(b);
             }
@@ -54,7 +85,7 @@ public class Main {
         int spliceStart = rand.nextInt(genomeB.length/ Gene.GENE_SIZE);
         int spliceEnd = rand.nextInt(spliceStart,genomeB.length/ Gene.GENE_SIZE);
         for(int i=spliceStart; i < spliceEnd; i+=3){
-            child.addGene(Arrays.copyOfRange(genomeB,i,i+2));
+            child.addGene(Arrays.copyOfRange(genomeB,(i*Gene.GENE_SIZE),(i*Gene.GENE_SIZE)+Gene.GENE_SIZE));
         }
 
         while (rand.nextFloat() <= Settings.MUTATION_CHANCE){
@@ -66,12 +97,11 @@ public class Main {
             byte[] gene = Gene.makeGene(x,y,tile);
             child.addGene(gene);
         }
-
         return new Agent(a.getInitialBoard(), child);
 
     }
 
-    public long evaluation(Agent agent){
+    public static long evaluation(Agent agent){
         boolean allFinished = true;
         HashSet<Integer> visitedTiles = new HashSet<>();
         Board board = agent.getBoard();
@@ -95,14 +125,16 @@ public class Main {
         long fullScore = 0;
         for(int i = 0; i < Settings.BOARD_WIDTH; i++)
             for (int j = 0; j < Settings.BOARD_HEIGHT; j++)
-                fullScore = Tile.getValue(board.getTile(i, j));
+                fullScore += Tile.getValue(board.getTile(i, j));
         if(allFinished){
+            System.out.println("SUCCESS");
             return pathScore*pathScore + (long)Math.sqrt(fullScore);
         }
+        //System.out.println("FAIL: " + fullScore*fullScore);
         return fullScore*fullScore;
     }
 
-    public List<Integer> evalStation(Board board, short[] station){
+    public static List<Integer> evalStation(Board board, short[] station){
 
         boolean found = false;
 

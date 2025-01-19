@@ -18,7 +18,6 @@ public class Darwin {
 
     private int generation = 0;
     private ArrayList<Agent> agents;
-    private final long boardSeed;
     private final short width;
     private final short height;
     private final int maxTrains;
@@ -29,11 +28,11 @@ public class Darwin {
     private final CrossoverFunc<Agent> crossoverFunc;
     private final EvalFunc<Agent> evalFunc;
     private final RepopulateFunc<Agent> repopulateFunc;
+    private Board initBoard;
 
-    public Darwin(int agentCount, long seed,
+    public Darwin(int agentCount,
                   CrossoverFunc<Agent> crossoverFunc, EvalFunc<Agent> evalFunc,
                   RepopulateFunc<Agent> repopulateFunc, long randomSeed) {
-        this.boardSeed = seed;
         this.width = Settings.BOARD_WIDTH;
         this.height = Settings.BOARD_HEIGHT;
         this.maxTrains = Settings.MAX_TRAINS;
@@ -49,23 +48,29 @@ public class Darwin {
     }
 
     private void initGen0(){
+        long board_seed = rand.nextLong();
+        this.initBoard = new Board(this.width, this.height, this.maxTrains, board_seed);
         for (int i = 0; i < this.maxAgents; i++) {
-            Board board = new Board(this.width, this.height, this.maxTrains, this.boardSeed);
+            Board board = new Board(this.width, this.height, this.maxTrains, board_seed);
             Agent agent = Agent.withRandomGenome(board, this.minFill, this.maxFill, rand.nextLong());
             this.agents.add(agent);
         }
     }
 
-    private EvolutionResults evolve(){
+    public EvolutionResults evolve(){
         long[] scores = new long[this.agents.size()];
-        long maxScore = Integer.MAX_VALUE;
+        long maxScore = 0;
+        long minScore = Long.MAX_VALUE;
         Agent bestAgent = null;
         for (int i = 0; i < this.agents.size(); i++) {
             Agent agent = this.agents.get(i);
             agent.solve();
             scores[i] = this.evalFunc.eval(agent);
-            if (scores[i] < maxScore) {
+            if (scores[i] > maxScore) {
                 maxScore = scores[i];
+            }
+            if (scores[i] < minScore) {
+                minScore = scores[i];
                 bestAgent = agent;
             }
             agent.setScore(scores[i]);
@@ -73,10 +78,17 @@ public class Darwin {
         Collection<Agent> newPopulation = this.repopulateFunc.repopulate(this.agents, this.crossoverFunc, this.rand.nextLong());
         ArrayList<Agent> newGeneration = new ArrayList<>(newPopulation);
 
-        EvolutionResults evoResults = new EvolutionResults(this.generation, bestAgent, maxScore, scores);
         this.generation++;
+
+        //System.out.println("MAX: " + maxScore);
+        //System.out.println("MIN: " + minScore);
+
+        EvolutionResults evoResults = new EvolutionResults(this.generation, bestAgent, maxScore, minScore, scores);
         this.agents = newGeneration;
         return evoResults;
     }
 
+    public Board getInitBoard() {
+        return initBoard;
+    }
 }

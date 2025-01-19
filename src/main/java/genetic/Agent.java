@@ -4,6 +4,9 @@ import models.Gene;
 import models.Genome;
 import models.Tile;
 import railroads.Board;
+import railroads.Settings;
+import util.Utils;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -55,8 +58,8 @@ public class Agent {
         int h = board.getHeight();
         for (int i = 0; i < geneCount; i++) {
             byte tile = Tile.validTiles[rand.nextInt(Tile.validTiles.length)];
-            short x = (short)rand.nextInt(Short.MAX_VALUE);
-            short y = (short)rand.nextInt(Short.MAX_VALUE);
+            short x = (short)rand.nextInt(w);
+            short y = (short)rand.nextInt(h);
             byte[] gene = Gene.makeGene(x,y, tile);
             genome.addGene(gene);
         }
@@ -67,7 +70,19 @@ public class Agent {
         Integer[] positions = genome.getGenePositions();
         for(int position: positions){
             byte[] gene = genome.getGene(position);
-            board.setTile(Gene.getX(gene), Gene.getY(gene), Gene.getTile(gene));
+
+            //for(byte b: gene)
+            //    System.out.println(Utils.byteToString(b));
+
+            short x = Gene.getX(gene);
+            short y = Gene.getY(gene);
+
+            //System.out.println("X: " + x + " Y: " + y);
+
+            byte btile = board.getTile(x, y);
+            if (Tile.isStation(btile)) continue;
+
+            board.setTile(x, y, Gene.getTile(gene));
         }
         return board;
     }

@@ -57,23 +57,23 @@ public class Tile {
     public static String toString(byte tile) {
         return switch (tile) {
             case NONE_TILE -> " ";
-            case UP_TILE -> Character.toString(0x2579);
-            case DOWN_TILE -> Character.toString(0x257B);
-            case LEFT_TILE -> Character.toString(0x2578);
-            case RIGHT_TILE -> Character.toString(0x257A);
-            case HORIZONTAL_TILE -> Character.toString(0x2501);
-            case VERTICAL_TILE -> Character.toString(0x2503);
-            case ALL_TILE -> Character.toString(0x254b);
-            case UP_RIGHT_TILE -> Character.toString(0x2517);
-            case UP_LEFT_TILE -> Character.toString(0x251b);
-            case DOWN_RIGHT_TILE -> Character.toString(0x250f);
-            case DOWN_LEFT_TILE -> Character.toString(0x2513);
-            case UP_T_TILE -> Character.toString(0x253B);
-            case DOWN_T_TILE -> Character.toString(0x2533);
-            case LEFT_T_TILE -> Character.toString(0x252b);
-            case RIGHT_T_TILE -> Character.toString(0x2523);
-            case STATION -> "S";
-            default -> "?";
+            case UP_TILE -> "UP TILE";
+            case DOWN_TILE -> "DOWN TILE";
+            case LEFT_TILE -> "LEFT TILE";
+            case RIGHT_TILE -> "RIGHT TILE";
+            case HORIZONTAL_TILE -> "HORIZONTAL";
+            case VERTICAL_TILE -> "VERTICAL";
+            case ALL_TILE -> "CROSS";
+            case UP_RIGHT_TILE -> "UP RIGHT TILE";
+            case UP_LEFT_TILE -> "UP LEFT TILE";
+            case DOWN_RIGHT_TILE -> "DOWN RIGHT TILE";
+            case DOWN_LEFT_TILE -> "DOWN LEFT TILE";
+            case UP_T_TILE -> "UP T TILE";
+            case DOWN_T_TILE -> "DOWN T TILE";
+            case LEFT_T_TILE -> "LEFT T TILE";
+            case RIGHT_T_TILE -> "RIGHT T TILE";
+            case STATION -> "STATION";
+            default -> "UNKNOWN";
         };
     }
 
