@@ -15,6 +15,7 @@ import util.helpers.RepopulateFunc;
 
 import java.sql.SQLOutput;
 import java.util.*;
+import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) {
@@ -115,7 +116,7 @@ public class Main {
         }
 
         long pathScore = 0;
-        if (allFinished){
+        if (allFinished || true){
             pathScore = visitedTiles.stream().mapToInt(pos -> {
                 short[] xy = Gene.positionToXY(pos);
                 byte tile = board.getTile(xy[0], xy[1]);
@@ -131,7 +132,7 @@ public class Main {
             return pathScore*pathScore + (long)Math.sqrt(fullScore);
         }
         //System.out.println("FAIL: " + fullScore*fullScore);
-        return fullScore*fullScore;
+        return (pathScore*pathScore + (long)Math.sqrt(fullScore)) * (pathScore*pathScore + (long)Math.sqrt(fullScore));
     }
 
     public static List<Integer> evalStation(Board board, short[] station){
@@ -201,4 +202,6 @@ public class Main {
         }
         return shortestPath;
     }
+
+
 }
