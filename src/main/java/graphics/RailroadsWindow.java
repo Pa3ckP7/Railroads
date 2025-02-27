@@ -1,6 +1,7 @@
 package graphics;
 
 import genetic.Agent;
+import railroads.Board;
 import util.DataContainers.EvolutionResults;
 
 import javax.swing.*;
@@ -17,7 +18,7 @@ public class RailroadsWindow extends JFrame {
 
     long minAllTime = -1;
 
-    public RailroadsWindow(byte[] board) {
+    public RailroadsWindow(Board board) {
         super("Railroads");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(650, 600);

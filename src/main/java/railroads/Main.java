@@ -22,7 +22,7 @@ public class Main {
         long seed = 19012025;
 
         Darwin darwin = new Darwin(Settings.MAX_AGENTS, Main::crossover, Main::evaluation, Main::repopulate, seed);
-        byte[] init_board = darwin.getInitBoard().getAllTiles();
+        Board init_board = darwin.getInitBoard();
         RailroadsWindow window = new RailroadsWindow(init_board);
 
         //System.out.println("Gen 0");
@@ -38,68 +38,78 @@ public class Main {
         }
     }
 
-    public static ArrayList<Agent> repopulate(Collection<Agent> agents, CrossoverFunc<Agent> crossoverFunc, long seed) {
+    public static ArrayList<Agent> repopulate(Collection<Agent> agents, CrossoverFunc crossoverFunc, long seed) {
         ArrayList<Agent> newAgents = new ArrayList<>();
         ArrayList<Agent> exAgents = new ArrayList<>(agents);
         Random rand = new Random(seed);
-        final long maxScore = exAgents.stream().mapToLong(Agent::getScore).max().orElse(1);
-        final long minScore = exAgents.stream().mapToLong(Agent::getScore).min().orElse(0);
+        exAgents.sort( Comparator.comparingLong(a -> a.getScore().orElse(Long.MAX_VALUE)));
+        long[] tickets = generateTickets(exAgents.size());
+        long alltickets = Arrays.stream(tickets).sum();
 
-        //System.out.println("RMAX " + maxScore);
-        //System.out.println("RMIN " + minScore);
+        Set<Agent> usedAgents = new HashSet<>();
 
-        //double[] scores = exAgents.stream().mapToDouble( x -> 1.0 - (x.getScore() - minScore)/(double)(maxScore - minScore)).toArray();
-
-        for(int i = 0; newAgents.size() < railroads.Settings.MAX_AGENTS; i=(i+1)%exAgents.size()) {
-
-            Agent agent = exAgents.get(i);
-
-            long agentScoreRaw = agent.getScore();
-            double agentScore = 1 - (agentScoreRaw - minScore)/(double)(maxScore - minScore);
-
-            //System.out.println("RAW: "  + agentScoreRaw);
-            //System.out.println("NORM: " + agentScore);
-
-            if(rand.nextDouble() > agentScore) continue;
-            //System.out.println("Added");
-            newAgents.add(exAgents.get(i));
-            if(newAgents.size()%2==0){
-                Agent a = exAgents.removeLast();
-                Agent b = exAgents.removeLast();
-                Agent c1 = crossoverFunc.Cross(a,b, rand.nextLong());
-                Agent c2 = crossoverFunc.Cross(b,a, rand.nextLong());
-                newAgents.add(c1);
-                newAgents.add(c2);
+        while(exAgents.size() < Settings.MAX_AGENTS){
+            for (int i=0; i< exAgents.size(); i++){
+                Agent a = exAgents.get(i);
+                if(usedAgents.contains(a)) continue;
+                alltickets -= tickets[i];
+                usedAgents.add(a);
+                newAgents.add(a);
+                break;
+            }
+            for(int i=1; i< exAgents.size(); i++){
+                Agent a = exAgents.get(i);
+                if(usedAgents.contains(a)) continue;
+                double chance = 1-tickets[i]/(double)alltickets;
+                if(rand.nextDouble() < chance) continue;
+                Agent b = newAgents.getLast();
+                Agent c = crossoverFunc.Cross(a,b, rand.nextLong());
+                Agent d = crossoverFunc.Cross(b, a, rand.nextLong());
                 newAgents.add(a);
                 newAgents.add(b);
+                newAgents.add(c);
+                newAgents.add(d);
+                usedAgents.add(b);
+                alltickets-= tickets[i];
+                break;
             }
         }
+
+
 
         return newAgents;
     }
 
+    public static long[] generateTickets(int count){
+
+        int MAX_SCORE = count;
+        double ratio = 0.95;
+
+        double score = MAX_SCORE;
+
+        long[] tickets = new long[count];
+        for (int i = 0; i < count; i++) {
+            tickets[i] =  Math.max((long)Math.ceil(score), 1);
+            score *= ratio;
+        }
+
+        return tickets;
+    }
+
     public static Agent crossover(Agent a, Agent b, long seed) {
         Random rand = new Random(seed);
-        Genome genomeA = a.getGenome();
-        byte[] genomeB = b.getGenome().serialize();
-        Genome child = new Genome(genomeA.serialize());
-        int spliceStart = rand.nextInt(genomeB.length/ Gene.GENE_SIZE);
-        int spliceEnd = rand.nextInt(spliceStart,genomeB.length/ Gene.GENE_SIZE);
-        for(int i=spliceStart; i < spliceEnd; i+=3){
-            child.addGene(Arrays.copyOfRange(genomeB,(i*Gene.GENE_SIZE),(i*Gene.GENE_SIZE)+Gene.GENE_SIZE));
+        Genome newGenome = new Genome(a.getGenome());
+        int[] genomeB = a.getGenome().getGenePositions();
+        int[] genomeA = b.getGenome().getGenePositions();
+        int spliceA = rand.nextInt(genomeA.length);
+        int spliceB = rand.nextInt(genomeB.length);
+        for (int i = 0; i < spliceA; i++) {
+            newGenome.addGene(new Gene(a.getGenome().getGene(genomeA[i])));
         }
-
-        while (rand.nextFloat() <= Settings.MUTATION_CHANCE){
-            short x = (short) rand.nextInt(Settings.BOARD_WIDTH);
-            short y = (short) rand.nextInt(Settings.BOARD_HEIGHT);
-            child.removeGene(x,y);
-            if(rand.nextFloat() < 0.3) continue;
-            byte tile = Tile.validTiles[rand.nextInt(Tile.validTiles.length)];
-            byte[] gene = Gene.makeGene(x,y,tile);
-            child.addGene(gene);
+        for (int i = spliceB; i < genomeB.length; i++) {
+            newGenome.addGene(new Gene(b.getGenome().getGene(genomeB[i])));
         }
-        return new Agent(a.getInitialBoard(), child);
-
+        return new Agent(a.getBoard(), newGenome);
     }
 
     public static long evaluation(Agent agent){

@@ -25,14 +25,14 @@ public class Darwin {
     private final float maxFill;
     private final int maxAgents;
     private final Random rand;
-    private final CrossoverFunc<Agent> crossoverFunc;
+    private final CrossoverFunc crossoverFunc;
     private final EvalFunc<Agent> evalFunc;
-    private final RepopulateFunc<Agent> repopulateFunc;
+    private final RepopulateFunc repopulateFunc;
     private Board initBoard;
 
     public Darwin(int agentCount,
-                  CrossoverFunc<Agent> crossoverFunc, EvalFunc<Agent> evalFunc,
-                  RepopulateFunc<Agent> repopulateFunc, long randomSeed) {
+                  CrossoverFunc crossoverFunc, EvalFunc<Agent> evalFunc,
+                  RepopulateFunc repopulateFunc, long randomSeed) {
         this.width = Settings.BOARD_WIDTH;
         this.height = Settings.BOARD_HEIGHT;
         this.maxTrains = Settings.MAX_TRAINS;
@@ -49,10 +49,10 @@ public class Darwin {
 
     private void initGen0(){
         long board_seed = rand.nextLong();
-        this.initBoard = new Board(this.width, this.height, this.maxTrains, board_seed);
+        this.initBoard = new Board(board_seed);
         for (int i = 0; i < this.maxAgents; i++) {
-            Board board = new Board(this.width, this.height, this.maxTrains, board_seed);
-            Agent agent = Agent.withRandomGenome(board, this.minFill, this.maxFill, rand.nextLong());
+            Board board = new Board(initBoard);
+            Agent agent = new Agent(board, rand.nextLong());
             this.agents.add(agent);
         }
     }

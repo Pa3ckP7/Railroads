@@ -1,68 +1,48 @@
 package models;
 
-public class Gene {
 
-    public static final int GENE_SIZE = 5;
+public class Gene{
+    private short x;
+    private short y;
+    Tile tile;
 
-    public static byte[] makeGene(short x, short y, byte tile){
-        byte[] gene = new byte[5];
-        gene[1] = (byte)x;
-        gene[0] = (byte)(x>>8);
-        gene[3] = (byte)y;
-        gene[2] = (byte)(y>>8);
-        gene[4] = tile;
-
-        return gene;
-    }
-
-    public static byte[] makeGene(int position, byte tile){
-
-
-        short y = (short)(position);
-        short x = (short)(position>>16);
-        //System.out.println("X: " + x + ", Y: " + y);
-        //System.out.println(Integer.toBinaryString(position));
-        return makeGene(x, y, tile);
-    }
-
-    public static byte getTile(byte[] gene){
-        return gene[4];
-    }
-
-    public static int getPosition(byte[] gene){
-        int position = getX(gene);
-        position = position << 16;
-        position = position | (short)(getY(gene));
-        return position;
-    }
-
-    public static short getX(byte[] gene){
-        short x = 0;
-        x = (short) (x|gene[0]);
-        x = (short) (x<<8);
-        x = (short) (x|gene[1]);
+    public short getX() {
         return x;
     }
 
-    public static short getY(byte[] gene){
-        short y = 0;
-        y = (short) (y|gene[2]);
-        y = (short) (y<<8);
-        y = (short) (y|gene[3]);
+    public short getY() {
         return y;
     }
 
-    public static int xyToPosition(short x, short y){
-        int position = x;
-        position = position << 16;
-        position = position|y;
-        return position;
+    public int getPosition(){
+        return  xyToPosition(x, y);
     }
 
-    public static short[] positionToXY(int position){
-        short x = (short)(position>>16);
-        short y = (short)(position);
+    public Tile getTile() {
+        return tile;
+    }
 
-        return new short[]{x, y};
+    public Gene(short x, short y, int tile) {
+        this.x = x;
+        this.y = y;
+        this.tile = new Tile(tile);
+    }
+
+    public Gene(Gene gene){
+        this.x = gene.getX();
+        this.y = gene.getY();
+        this.tile = new Tile(gene.getTile().getTileType());
+    }
+
+    public static int xyToPosition(short x, short y){
+        int val = y<<16;
+        val+=x;
+        return val;
+    }
+
+    public static int[] positionToXY(int position){
+        int x = position & 0xFFFF; // Extract the lower 16 bits
+        int y = position >>> 16;   // Extract the upper 16 bits
+        return new int[]{x, y};
     }
 }

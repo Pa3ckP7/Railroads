@@ -3,82 +3,81 @@ package models;
 import java.util.*;
 
 public class Genome {
-    private final HashMap<Integer, Byte> genes;
+    private final TreeMap<Integer, Gene> genes;
 
     public Genome() {
-        genes = new HashMap<>();
+        genes = new TreeMap<>();
     }
 
-    public Genome(byte[] serializedGenes){
-        genes = new HashMap<>();
-        for (int i = 0; i < serializedGenes.length; i+=5) {
-            byte[] gene = Arrays.copyOfRange(serializedGenes, i, i+5);
-            if(genes.containsKey(Gene.getPosition(gene))){
-                Byte oldTile = genes.get(Gene.getPosition(gene));
-                oldTile = (byte)(oldTile|Gene.getTile(gene));
-                genes.put(Gene.getPosition(gene), oldTile);
-            }else{
-                genes.put(Gene.getPosition(gene), Gene.getTile(gene));
-            }
+    public Genome(Genome genome) {
+        genes = new TreeMap<>();
+        for(var entry : genome.genes.sequencedEntrySet()){
+            var geneTemp = entry.getValue();
+            genes.put(entry.getKey(), new Gene(geneTemp));
+        }
+    }
+
+    public Genome(Gene[] genes){
+        this.genes = new TreeMap<>();
+        for(Gene gene : genes){
+            addGene(gene);
         }
     }
 
 
-    public byte[] serialize(){
-        byte[] serializedGenes = new byte[genes.size()*5];
-        Integer[] keySet = genes.keySet().toArray(Integer[]::new);
+    public Gene[] toArray(){
+        return genes.values().toArray(Gene[]::new);
+    }
 
-        for(int i = 0; i < keySet.length; i++){
-            byte[] gene = Gene.makeGene(keySet[i], genes.get(keySet[i]));
-            System.arraycopy(gene, 0, serializedGenes, i * 5, 5);
-        }
-        return serializedGenes;
+    public boolean hasGene(int position){
+        return genes.containsKey(position);
     }
 
     public boolean hasGene(short x, short y){
         int key = Gene.xyToPosition(x, y);
-        return genes.containsKey(key);
+        return hasGene(key);
     }
 
-    public void addGene(byte[] gene){
-        int key = Gene.getPosition(gene);
-        if(genes.containsKey(key)){
-            byte oldTile = genes.get(key);
-            oldTile = (byte)(oldTile|Gene.getTile(gene));
-            genes.put(key, oldTile);
-            return;
-        }
-        genes.put(key, Gene.getTile(gene));
+    public boolean addGene(Gene gene){
+        int key = gene.getPosition();
+        if(hasGene(key)) return false;
+        genes.put(key, gene);
+        return true;
     }
 
-    public byte[] removeGene(short x, short y){
+    public void overrideGene(Gene gene){
+        int key = gene.getPosition();
+        genes.put(key, gene);
+    }
+
+    public Gene removeGene(int position){
+        return genes.remove(position);
+    }
+
+    public Gene removeGene(short x, short y){
         int key = Gene.xyToPosition(x, y);
-        byte[] gene = getGene(key);
-        genes.remove(key);
-        return gene;
-    }
-
-    public void removeGene(int position){
-        genes.remove(position);
+        return removeGene(key);
     }
 
     public int size(){
         return genes.size();
     }
 
-    public byte[] getGene(short x, short y){
+    public Gene getGene(short x, short y){
         int key = Gene.xyToPosition(x, y);
         return getGene(key);
     }
 
-    public byte[] getGene(int position){
-        if(!genes.containsKey(position)) return null;
-        byte tile = genes.get(position);
-        return Gene.makeGene(position, tile);
+    public Gene getGene(int position){
+       return genes.getOrDefault(position, null);
     }
 
-    public Integer[] getGenePositions(){
-        return genes.keySet().toArray(Integer[]::new);
+    public Set<Integer> getGenePositionsSet(){
+        return genes.keySet();
+    }
+
+    public int[] getGenePositions(){
+        return genes.keySet().stream().mapToInt(Integer::intValue).toArray();
     }
 
 

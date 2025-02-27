@@ -1,21 +1,22 @@
 package graphics;
 
 import models.Tile;
+import models.TileType;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class RailDisplay extends JPanel {
 
-    private byte railData;
+    private Tile railData;
 
-    public RailDisplay(byte rail) {
+    public RailDisplay(Tile rail) {
 
         railData = rail;
 
         //System.out.println(railData);
 
-        add(new JLabel("" + rail));
+        //add(new JLabel("" + rail));
 
         //repaint();
     }
@@ -33,24 +34,24 @@ public class RailDisplay extends JPanel {
 
         //System.out.println(railData);
 
-        if(Tile.isStation(railData)){
+        if(railData.isStation()){
             g2d.fillRect((int) (getWidth()*0.1), (int) (getHeight()*0.1), (int) (getWidth()*0.9), (int) (getHeight()*0.9));
             return;
         }
 
-        if(Tile.hasDirection(railData, Tile.LEFT_TILE)){
+        if(railData.hasDirection(TileType.LEFT)){
             g2d.drawLine(cx, cy, getWidth(), cy);
         }
 
-        if(Tile.hasDirection(railData, Tile.RIGHT_TILE)){
+        if(railData.hasDirection(TileType.RIGHT)){
             g2d.drawLine(cx, cy, 0, cy);
         }
 
-        if(Tile.hasDirection(railData, Tile.UP_TILE)){
+        if(railData.hasDirection(TileType.UP)){
             g2d.drawLine(cx, cy, cx, 0);
         }
 
-        if(Tile.hasDirection(railData, Tile.DOWN_TILE)){
+        if(railData.hasDirection(TileType.DOWN)){
             g2d.drawLine(cx, cy, cx, getHeight());
         }
 

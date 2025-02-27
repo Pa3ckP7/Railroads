@@ -1,42 +1,56 @@
 package railroads;
 
 import models.Tile;
+import models.TileType;
 
 import java.util.Random;
 
 public class Board {
     private final short WIDTH, HEIGHT;
-    private final byte[] board;
+    private final Tile[] board;
     private final int STATION_COUNT;
     private final short[][] stations;
 
     private final Random rand;
 
-    public Board(short width, short height, int stationCount) {
-        WIDTH = width;
-        HEIGHT = height;
-        STATION_COUNT = stationCount;
-        stations = new short[STATION_COUNT][4];
-        board = new byte[WIDTH * HEIGHT];
-        rand = new Random();
-        init_board();
+    public Board(Board board) {
+        this.WIDTH = board.WIDTH;
+        this.HEIGHT = board.HEIGHT;
+        this.STATION_COUNT = board.STATION_COUNT;
+        this.board = new Tile[WIDTH * HEIGHT];
+        this.rand = board.rand;
+        this.stations = new short[STATION_COUNT][4];
+
+        for (int y=0; y<HEIGHT; y++) {
+            for (int x=0; x<WIDTH; x++) {
+                setTile(x,y, new Tile(board.getTile(x,y).getTileType()));
+            }
+        }
+
+        for(int i=0; i<stations.length; i++){
+            stations[i][0] = board.stations[i][0];
+            stations[i][1] = board.stations[i][1];
+            stations[i][2] = board.stations[i][2];
+            stations[i][3] = board.stations[i][3];
+        }
+
     }
 
-    public Board(short width, short height, int stationCount, long seed) {
-        WIDTH = width;
-        HEIGHT = height;
-        STATION_COUNT = stationCount;
+    public Board(long seed) {
+        WIDTH = Settings.BOARD_WIDTH;
+        HEIGHT = Settings.BOARD_HEIGHT;
+        STATION_COUNT = Settings.MAX_TRAINS;
         stations = new short[STATION_COUNT][4];
-        board = new byte[WIDTH * HEIGHT];
+        board = new Tile[WIDTH * HEIGHT];
         rand = new Random(seed);
-        init_board();
+        initBoard();
     }
 
-    private void init_board(){
+    private void initBoard(){
         //i is row, j is col
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
-                board[i * WIDTH + j] = Tile.NONE_TILE;
+                board[i * WIDTH + j] = new Tile(TileType.NONE);
             }
         }
 
@@ -44,8 +58,8 @@ public class Board {
             while(true){
                 int beginx = rand.nextInt(WIDTH);
                 int beginy = rand.nextInt(HEIGHT);
-                if (getTile(beginx, beginy) == Tile.STATION) continue;
-                setTile(beginx, beginy, Tile.STATION);
+                if (getTile(beginx, beginy).isStation()) continue;
+                setTile(beginx, beginy, new Tile(TileType.STATION));
                 stations[i][0] = (short)beginx;
                 stations[i][1] = (short)beginy;
                 break;
@@ -53,8 +67,8 @@ public class Board {
             while(true){
                 int endx = rand.nextInt(WIDTH);
                 int endy = rand.nextInt(HEIGHT);
-                if (getTile(endx, endy) == Tile.STATION) continue;
-                setTile(endx, endy, Tile.STATION);
+                if (getTile(endx, endy).isStation()) continue;
+                setTile(endx, endy, new Tile(TileType.STATION));
                 stations[i][2] = (short)endx;
                 stations[i][3] = (short)endy;
                 break;
@@ -62,47 +76,14 @@ public class Board {
         }
     }
 
-    public byte getTile(int x, int y){
+    public Tile getTile(int x, int y){
         return board[y * WIDTH + x];
     }
 
-    public void setTile(int x, int y, byte tile){
+    public void setTile(int x, int y, Tile tile){
         board[y * WIDTH + x] = tile;
     }
 
-    public void printBoard(){
-        for (int i = 0; i < HEIGHT; i++) {
-            for (int j = 0; j < WIDTH; j++) {
-                if(Tile.isStation(getTile(j, i))){
-                    char c = 'S';
-                    for (int k = 0; k < STATION_COUNT; k++) {
-                        if(stations[k][0] == j && stations[k][1] == i){
-                            c = (char)(k+'A');
-                            break;
-                        }
-                        if(stations[k][2] == j && stations[k][3] == i){
-                            c = (char)(k+'a');
-                            break;
-                        }
-                    }
-                    System.out.print(c);
-                    continue;
-                }
-                System.out.print(getTile(j, i));
-            }
-            System.out.println();
-        }
-    }
-
-    public void randomize(){
-        for (int i = 0; i < HEIGHT; i++) {
-            for (int j = 0; j < WIDTH; j++) {
-                if(Tile.isStation(getTile(i, j)))continue;
-                byte tile = Tile.validTiles[rand.nextInt(Tile.validTiles.length)];
-                setTile(i, j, tile);
-            }
-        }
-    }
 
     public int getHeight(){
         return HEIGHT;
@@ -120,7 +101,7 @@ public class Board {
         return stations;
     }
 
-    public byte[] getAllTiles(){
+    public Tile[] getAllTiles(){
         return board;
     }
 }
