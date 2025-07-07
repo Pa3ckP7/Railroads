@@ -1,8 +1,8 @@
 package graphics;
 
-import genetic.Agent;
+import models.Agent;
 import railroads.Board;
-import util.DataContainers.EvolutionResults;
+import dto.EvolutionResults;
 
 import javax.swing.*;
 import java.awt.*;

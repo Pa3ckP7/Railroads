@@ -1,21 +1,13 @@
 package railroads;
 
-import genetic.Agent;
-import genetic.Darwin;
+import models.Agent;
 import graphics.RailroadsWindow;
 import models.Gene;
-import models.Genome;
 import models.Tile;
-import util.DataContainers.AgentSettings;
-import util.DataContainers.BoardSettings;
-import util.DataContainers.EvolutionResults;
+import dto.EvolutionResults;
 import util.helpers.CrossoverFunc;
-import util.helpers.EvalFunc;
-import util.helpers.RepopulateFunc;
 
-import java.sql.SQLOutput;
 import java.util.*;
-import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) {

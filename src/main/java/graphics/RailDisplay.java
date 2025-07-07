@@ -1,7 +1,6 @@
 package graphics;
 
 import models.Tile;
-import models.TileType;
 
 import javax.swing.*;
 import java.awt.*;

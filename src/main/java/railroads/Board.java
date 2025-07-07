@@ -1,7 +1,8 @@
 package railroads;
 
+import models.Transform;
+import models.StationTrack;
 import models.Tile;
-import models.TileType;
 
 import java.util.Random;
 
@@ -9,7 +10,7 @@ public class Board {
     private final short WIDTH, HEIGHT;
     private final Tile[] board;
     private final int STATION_COUNT;
-    private final short[][] stations;
+    private final StationTrack[] stations;
 
     private final Random rand;
 
@@ -19,28 +20,22 @@ public class Board {
         this.STATION_COUNT = board.STATION_COUNT;
         this.board = new Tile[WIDTH * HEIGHT];
         this.rand = board.rand;
-        this.stations = new short[STATION_COUNT][4];
-
+        this.stations = new StationTrack[STATION_COUNT];
         for (int y=0; y<HEIGHT; y++) {
             for (int x=0; x<WIDTH; x++) {
-                setTile(x,y, new Tile(board.getTile(x,y).getTileType()));
+                setTile(x,y, board.getTile(x,y));
             }
         }
-
         for(int i=0; i<stations.length; i++){
-            stations[i][0] = board.stations[i][0];
-            stations[i][1] = board.stations[i][1];
-            stations[i][2] = board.stations[i][2];
-            stations[i][3] = board.stations[i][3];
+            stations[i] = new StationTrack(stations[i]);
         }
-
     }
 
     public Board(long seed) {
         WIDTH = Settings.BOARD_WIDTH;
         HEIGHT = Settings.BOARD_HEIGHT;
         STATION_COUNT = Settings.MAX_TRAINS;
-        stations = new short[STATION_COUNT][4];
+        stations = new StationTrack[STATION_COUNT];
         board = new Tile[WIDTH * HEIGHT];
         rand = new Random(seed);
         initBoard();
@@ -50,41 +45,39 @@ public class Board {
         //i is row, j is col
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
-                board[i * WIDTH + j] = new Tile(TileType.NONE);
+                board[i * WIDTH + j] = Tile.None;
             }
         }
 
         for (int i = 0; i < STATION_COUNT; i++) {
+            Transform start;
+            Transform end;
             while(true){
                 int beginx = rand.nextInt(WIDTH);
                 int beginy = rand.nextInt(HEIGHT);
-                if (getTile(beginx, beginy).isStation()) continue;
-                setTile(beginx, beginy, new Tile(TileType.STATION));
-                stations[i][0] = (short)beginx;
-                stations[i][1] = (short)beginy;
+                if (getTile(beginx, beginy) == Tile.Station) continue;
+                setTile(beginx, beginy, Tile.Station);
+                start = new Transform(beginx, beginy);
                 break;
             }
             while(true){
                 int endx = rand.nextInt(WIDTH);
                 int endy = rand.nextInt(HEIGHT);
-                if (getTile(endx, endy).isStation()) continue;
-                setTile(endx, endy, new Tile(TileType.STATION));
-                stations[i][2] = (short)endx;
-                stations[i][3] = (short)endy;
+                if (getTile(endx, endy) == Tile.Station) continue;
+                setTile(endx, endy, Tile.Station);
+                end = new Transform(endx, endy);
                 break;
             }
+            stations[i] =  new StationTrack(start, end);
         }
     }
 
     public Tile getTile(int x, int y){
         return board[y * WIDTH + x];
     }
-
     public void setTile(int x, int y, Tile tile){
         board[y * WIDTH + x] = tile;
     }
-
-
     public int getHeight(){
         return HEIGHT;
     }
@@ -93,11 +86,7 @@ public class Board {
         return WIDTH;
     }
 
-    public int getSize(){
-        return WIDTH * HEIGHT;
-    }
-
-    public short[][] getStations(){
+    public StationTrack[] getStations(){
         return stations;
     }
 
