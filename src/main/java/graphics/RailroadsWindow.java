@@ -9,7 +9,7 @@ import java.awt.*;
 
 public class RailroadsWindow extends JFrame {
 
-    AgentDisplay agentDisplay;
+    AgentDisplay agentDisplay = null;
     JPanel statDisplay;
     JLabel generation;
     JLabel minScoreAll;
@@ -25,8 +25,8 @@ public class RailroadsWindow extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
-        agentDisplay = new AgentDisplay(board);
-        add(agentDisplay);
+        //agentDisplay = new AgentDisplay(board);
+        //add(agentDisplay);
 
         statDisplay = new JPanel();
         //statDisplay.setLayout(new GridLayout(1, 4));
@@ -49,17 +49,17 @@ public class RailroadsWindow extends JFrame {
 
     public void updateAgentDisplay(EvolutionResults results) {
         generation.setText("Generation: " + results.generation());
-        if ( minAllTime == -1 || minAllTime > results.lowestScore() ) {
-            minAllTime = results.lowestScore();
+        if ( minAllTime == -1 || minAllTime > results.worstSolution().evaluation() ) {
+            minAllTime = results.worstSolution().evaluation();
             minScoreAll.setText("Min Score: " + minAllTime);
         }
-        genMaxScore.setText("Generation Max Score: " + results.highestScore());
-        genMinScore.setText("Generation Min Score: " + results.lowestScore());
+        genMaxScore.setText("Generation Max Score: " + results.bestSolution().evaluation());
+        genMinScore.setText("Generation Min Score: " + results.bestSolution().evaluation());
 
-        Agent a = results.bestAgent();
-        a.solve();
-        remove(agentDisplay);
-        agentDisplay = new AgentDisplay(a.getBoard().getAllTiles());
+        if(agentDisplay!=null){
+            remove(agentDisplay);
+        }
+        agentDisplay = new AgentDisplay(results.bestSolution());
         add(agentDisplay);
 
         revalidate();

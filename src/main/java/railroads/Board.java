@@ -27,7 +27,7 @@ public class Board {
             }
         }
         for(int i=0; i<stations.length; i++){
-            stations[i] = new StationTrack(stations[i]);
+            stations[i] = new StationTrack(board.stations[i]);
         }
     }
 
@@ -53,7 +53,7 @@ public class Board {
             Transform start;
             Transform end;
             while(true){
-                int beginx = rand.nextInt(WIDTH);
+                int beginx = rand.nextInt(0, (int)Math.ceil(WIDTH*0.3));
                 int beginy = rand.nextInt(HEIGHT);
                 if (getTile(beginx, beginy) == Tile.Station) continue;
                 setTile(beginx, beginy, Tile.Station);
@@ -61,18 +61,19 @@ public class Board {
                 break;
             }
             while(true){
-                int endx = rand.nextInt(WIDTH);
+                int endx = rand.nextInt((int)Math.ceil(WIDTH*0.7), WIDTH);
                 int endy = rand.nextInt(HEIGHT);
                 if (getTile(endx, endy) == Tile.Station) continue;
                 setTile(endx, endy, Tile.Station);
                 end = new Transform(endx, endy);
                 break;
             }
-            stations[i] =  new StationTrack(start, end);
+            stations[i] = new StationTrack(start, end);
         }
     }
 
     public Tile getTile(int x, int y){
+        if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) return Tile.None;
         return board[y * WIDTH + x];
     }
     public void setTile(int x, int y, Tile tile){

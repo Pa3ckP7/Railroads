@@ -2,14 +2,15 @@ package models;
 
 import dto.Solution;
 import railroads.Board;
+import railroads.Settings;
 
 import java.util.*;
 
 public class Agent {
-    private TreeMap<Integer, Gene> genome;
+    private TreeMap<Transform, Gene> genome;
 
     public Solution solve(Board board){
-        var positions = genome.keySet();
+        var positions = new ArrayList<>(genome.keySet());
         for (var pos: positions){
             Gene gene = genome.get(pos);
             var transform = gene.getTransform();
@@ -23,27 +24,41 @@ public class Agent {
         return new Solution(this, board);
     }
 
-    public Agent(TreeMap<Integer, Gene> genome){
+    public Agent(TreeMap<Transform, Gene> genome){
         this.genome = genome;
     }
 
-    public TreeMap<Integer, Gene> evolve(TreeMap<Integer, Gene> partner){
-        var newGenome = new TreeMap<Integer, Gene>();
+    public TreeMap<Transform, Gene> evolve(TreeMap<Transform, Gene> partner){
+        var newGenome = new TreeMap<Transform, Gene>();
         for(var gene: genome.entrySet()){
-            newGenome.put(gene.getKey(), new Gene(gene.getValue()));
+            newGenome.put(new Transform(gene.getKey()), new Gene(gene.getValue()));
         }
         for(var gene: partner.entrySet()){
-            newGenome.put(gene.getKey(), new Gene(gene.getValue()));
+            newGenome.put(new Transform(gene.getKey()), new Gene(gene.getValue()));
         }
         return newGenome;
     }
-    public TreeMap<Integer, Gene> getGenome() {
+    public TreeMap<Transform, Gene> getGenome() {
         return genome;
     }
 
     public static Agent generateAgent(long seed){
+
+        var tiles = Tile.values();
+
         Random rand = new Random(seed);
-        //TODO finish generating
+
+        TreeMap<Transform, Gene> genome =  new TreeMap<>();
+        for(int i = 0; i < Settings.BOARD_WIDTH; i++){
+            for(int j = 0; j < Settings.BOARD_HEIGHT; j++){
+                if(rand.nextDouble() > Settings.AGENT_FILL) continue;
+                Transform t = new Transform(i,j);
+                Tile v = tiles[rand.nextInt(tiles.length)];
+                if(v ==  Tile.Station) continue;
+                genome.put(t,new Gene(t,v));
+            }
+        }
+        return new Agent(genome);
     }
 
 }

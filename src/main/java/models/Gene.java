@@ -1,6 +1,8 @@
 package models;
 
 
+import java.util.Objects;
+
 public class Gene{
     private Transform transform;
     private Tile tile;
@@ -21,5 +23,24 @@ public class Gene{
         var transform = gene.getTransform();
         this.transform = new Transform(transform);
         this.tile = gene.getTile();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof Gene other)) return false;
+        return this.transform.equals(other.transform) && this.tile == other.tile;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(transform.x, transform.y, tile);
+    }
+
+    @Override
+    public String toString() {
+        return "Gene{" +
+                "transform=" + transform +
+                ", tile=" + tile +
+                '}';
     }
 }

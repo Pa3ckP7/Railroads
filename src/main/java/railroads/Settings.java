@@ -1,11 +1,15 @@
 package railroads;
 
 public class Settings {
-    public final static short BOARD_WIDTH = 8;
-    public final static short BOARD_HEIGHT = 8;
-    public final static float AGENT_MIN_FILL = 0.89f;
-    public final static float AGENT_MAX_FILL = 0.9f;
-    public final static float MUTATION_CHANCE = 0.4f;
-    public final static int MAX_TRAINS = 1;
-    public final static int MAX_AGENTS = 10_000;
+    public final static short BOARD_WIDTH = 50;
+    public final static short BOARD_HEIGHT = 50;
+    public final static float AGENT_FILL = 0.5f;
+    public final static float MUTATION_CHANCE = 0.05f;
+    public final static float DELETE_MUTATION_CHANCE = 0.05f;
+    public final static int MUTATION_RADIUS = 2;
+    public final static int MAX_TRAINS = 3;
+    public final static int MAX_AGENTS = 100;
+    public final static float AGENT_ELITISM = 0.05f;
+
+    public final static float CROSS_SKIP = 0.4f;
 }

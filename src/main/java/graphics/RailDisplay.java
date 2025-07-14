@@ -8,11 +8,12 @@ import java.awt.*;
 public class RailDisplay extends JPanel {
 
     private Tile railData;
+    private Color color;
 
-    public RailDisplay(Tile rail) {
+    public RailDisplay(Tile rail, Color color) {
 
         railData = rail;
-
+        this.color = color;
         //System.out.println(railData);
 
         //add(new JLabel("" + rail));
@@ -30,27 +31,28 @@ public class RailDisplay extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
 
         g2d.setStroke(new BasicStroke((float) (getWidth()/3)));
+        g2d.setColor(color);
 
         //System.out.println(railData);
 
-        if(railData.isStation()){
+        if(railData == Tile.Station){
             g2d.fillRect((int) (getWidth()*0.1), (int) (getHeight()*0.1), (int) (getWidth()*0.9), (int) (getHeight()*0.9));
             return;
         }
 
-        if(railData.hasDirection(TileType.LEFT)){
-            g2d.drawLine(cx, cy, getWidth(), cy);
-        }
-
-        if(railData.hasDirection(TileType.RIGHT)){
+        if(railData.left){
             g2d.drawLine(cx, cy, 0, cy);
         }
 
-        if(railData.hasDirection(TileType.UP)){
+        if(railData.right){
+            g2d.drawLine(cx, cy, getWidth(), cy);
+        }
+
+        if(railData.up){
             g2d.drawLine(cx, cy, cx, 0);
         }
 
-        if(railData.hasDirection(TileType.DOWN)){
+        if(railData.down){
             g2d.drawLine(cx, cy, cx, getHeight());
         }
 
