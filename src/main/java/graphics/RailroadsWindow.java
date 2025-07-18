@@ -49,11 +49,11 @@ public class RailroadsWindow extends JFrame {
 
     public void updateAgentDisplay(EvolutionResults results) {
         generation.setText("Generation: " + results.generation());
-        if ( minAllTime == -1 || minAllTime > results.worstSolution().evaluation() ) {
-            minAllTime = results.worstSolution().evaluation();
+        if ( minAllTime == -1 || minAllTime > results.bestSolution().evaluation() ) {
+            minAllTime = results.bestSolution().evaluation();
             minScoreAll.setText("Min Score: " + minAllTime);
         }
-        genMaxScore.setText("Generation Max Score: " + results.bestSolution().evaluation());
+        genMaxScore.setText("Generation Max Score: " + results.worstSolution().evaluation());
         genMinScore.setText("Generation Min Score: " + results.bestSolution().evaluation());
 
         if(agentDisplay!=null){
