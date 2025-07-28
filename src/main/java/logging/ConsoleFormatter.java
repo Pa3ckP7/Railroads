@@ -10,15 +10,16 @@ import java.util.logging.LogRecord;
 
 public class ConsoleFormatter extends Formatter {
 
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     @Override
     public String format(LogRecord record) {
         var time =  sdf.format(new Date(record.getMillis()));
+        var category = record.getLoggerName();
         var level = record.getLevel();
         var thread = Thread.currentThread().getName();
         var message = record.getMessage();
-        var finalMessage = String.format("%s | [%s]\n%s:\t%s", time, thread, level, message);
+        var finalMessage = String.format("%s| %s[%s]\n%s:   %s", time, category,thread, level, message);
         if(level == Level.WARNING){
             finalMessage = "\u001B[33m" + finalMessage + "\u001B[0m\n";
         }

@@ -9,46 +9,70 @@ import java.util.Objects;
 import java.util.logging.*;
 
 public class KVLogger {
-    private static Logger _logger;
+    private Logger _logger;
     private static final DateFormat dateFormat = new SimpleDateFormat("yyMMdd_HHmmss");
     private static final Formatter formatter = new RawFormatter();
     private static final Handler consoleHandler = new ConsoleOutHandler(new ConsoleFormatter());
+    private static Handler fileHandler = null;
 
+    public KVLogger(String name){
+        setUpLogger(name);
+    }
+    public KVLogger(Class<?> clazz){
+        setUpLogger(clazz.getName());
+    }
+    public KVLogger(Class<?> clazz, String name) {
+        setUpLogger(clazz.getName()+"."+name);
+    }
+
+    private void setUpLogger(String name){
+        _logger = Logger.getLogger(name);
+        _logger.setUseParentHandlers(false);
+        _logger.setLevel(Level.ALL);
+        _logger.addHandler(consoleHandler);
+    }
+
+    public void attachHandler(Handler h){
+        if(!hasHandler(_logger,h)){
+            _logger.addHandler(h);
+        }
+    }
     private static String hash(){
         return String.format("%04x", (int)(Math.random() * 0x10000));
     }
-    public static void initLogger(String name){
+    public static Handler CreateFileHandler(String name) throws IOException {
 
-        _logger = Logger.getLogger("KeyValueLogger");
-        _logger.setUseParentHandlers(false);
         File dir = new File("logs");
         if (!dir.exists()) {
-            dir.mkdirs(); // Create the directory (and parents) if it doesn't exist
+            dir.mkdirs();
         }
         var filename = dateFormat.format(new Date()) + "-" + name +"@"+ hash() + ".log";
-        try{
-            var handler = new FileHandler(dir.getPath()+"/"+filename, true);
-            handler.setFormatter(formatter);
-            _logger.addHandler(handler);
-            _logger.addHandler(consoleHandler);
-        }catch(IOException e){
-            System.err.println("Error: could not create log file " +  filename);
-        }
+        FileHandler handler = new FileHandler(dir.getPath()+"/"+filename, true);
+        handler.setFormatter(formatter);
+        return handler;
     }
 
-    public static void log(String key, Object value){
+    public void log(String key, Object value){
         _logger.info(key + " " + value.toString());
     }
 
-    public static void log(Object msg){
+    public void log(Object msg){
         _logger.info(msg.toString());
     }
 
-    public static void close(){
-        for (Handler handler : _logger.getHandlers()) {
-            handler.close();
-            _logger.removeHandler(handler);
+    public void error(Object msg, Exception e){
+        _logger.log(Level.SEVERE, msg.toString(), e);
+    }
+
+    public void warn(Object msg, Exception e){
+        _logger.log(Level.WARNING, msg.toString(), e);
+    }
+
+    private static boolean hasHandler(Logger logger, Handler handler) {
+        for (Handler h : logger.getHandlers()) {
+            if (h == handler) return true;
         }
+        return false;
     }
 
 }
