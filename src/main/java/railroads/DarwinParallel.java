@@ -1,38 +1,51 @@
 package railroads;
 
 import dto.EvaluatedSolution;
-import dto.Solution;
-import dto.TrackEvalResult;
-import models.*;
 import dto.EvolutionResults;
+import dto.Solution;
+import models.*;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-public class Darwin {
+public class DarwinParallel {
 
     private int generation = 0;
     private ArrayList<Agent> agents;
     private final Random rand;
     private Board initBoard;
+    private ExecutorService executor;
 
-    public Darwin(long randomSeed) {
+    public DarwinParallel(long randomSeed) {
         this.agents = new ArrayList<>();
         this.rand = new Random(randomSeed);
+        var maxThreads = Runtime.getRuntime().availableProcessors();
+        this.executor =  Executors.newFixedThreadPool(Math.max(maxThreads-1, 1)); //to account for the main darwin thread
         initGen0();
     }
 
     private void initGen0(){
         long board_seed = rand.nextLong();
         this.initBoard = new Board(board_seed);
+        ArrayList<Callable<Agent>> cAgents = new ArrayList<>();
         for (int i = 0; i < Settings.MAX_AGENTS; i++) {
-            Agent agent = Agent.generateAgent(rand.nextLong());
-            this.agents.add(agent);
+            final var aseed = rand.nextLong();
+            cAgents.add( () -> Agent.generateAgent(aseed));
+        }
+
+        try {
+            var fAgents = executor.invokeAll(cAgents);
+            for(var fAgent : fAgents){
+                this.agents.add(fAgent.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public EvolutionResults evolve(){
-        var results = runAgents(this.agents);
+        var results =  runAgents(this.agents);
         var evaluatedResults = evaluateSolutions(results);
         evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
         var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
@@ -43,7 +56,7 @@ public class Darwin {
         if(winner.isPresent()){
             best = winner.get();
         }
-        boolean allSuccess = evaluatedResults.stream().allMatch(EvaluatedSolution::success);
+        boolean allSuccess = evaluatedResults.stream().parallel().allMatch(EvaluatedSolution::success);
         if(allSuccess){
             System.out.println("ALL SUCCESS");
         }
@@ -56,17 +69,37 @@ public class Darwin {
 
     private ArrayList<Solution> runAgents(ArrayList<Agent> agents){
         var solutions = new ArrayList<Solution>();
-        for (Agent agent : agents) {
-            var board = new Board(initBoard);
-            solutions.add(agent.solve(board));
+        var cSolutions = new ArrayList<Callable<Solution>>();
+        for (final Agent agent : agents) {
+            final var board = new Board(initBoard);
+            cSolutions.add(() -> agent.solve(board));
+        }
+        try {
+            var fSolutions = executor.invokeAll(cSolutions);
+            for (var fsolution : fSolutions) {
+                solutions.add(fsolution.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
         return solutions;
     }
     private ArrayList<EvaluatedSolution> evaluateSolutions(ArrayList<Solution> solutions){
         ArrayList<EvaluatedSolution> evaluatedSolutions = new ArrayList<>();
-        for (Solution solution : solutions) {
-            evaluatedSolutions.add(evaluateSolution(solution));
+        ArrayList<Callable<EvaluatedSolution>> cEvaluatedSolutions = new ArrayList<>();
+        for (final Solution solution : solutions) {
+            cEvaluatedSolutions.add(() -> evaluateSolution(solution));
         }
+
+        try {
+            var fSolutions = executor.invokeAll(cEvaluatedSolutions);
+            for (var fsolution : fSolutions) {
+                evaluatedSolutions.add(fsolution.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
         return evaluatedSolutions;
     }
 
@@ -97,39 +130,6 @@ public class Darwin {
         score += (sf-sm)*1000L;
 
         return new EvaluatedSolution(genes, score, solution, !failed, flood);
-    }
-
-    private boolean validateMin(ArrayList<Gene> path){
-        boolean isValid = true;
-        for (int i = 1; i < path.size(); i++) {
-            Gene prevGene = path.get(i - 1);
-            Gene currGene = path.get(i);
-            Transform prev = prevGene.getTransform();
-            Transform curr = currGene.getTransform();
-            Tile prevTile = prevGene.getTile();
-            Tile currTile = currGene.getTile();
-
-            int dx = curr.x - prev.x;
-            int dy = curr.y - prev.y;
-
-            boolean connection = false;
-            if (dx == 1 && dy == 0) { // right
-                connection = prevTile.right && currTile.left;
-            } else if (dx == -1 && dy == 0) { // left
-                connection = prevTile.left && currTile.right;
-            } else if (dx == 0 && dy == 1) { // down
-                connection = prevTile.down && currTile.up;
-            } else if (dx == 0 && dy == -1) { // up
-                connection = prevTile.up && currTile.down;
-            }
-
-            if (!connection) {
-                isValid = false;
-                System.out.println("Invalid connection between: " + prev + " (" + prevTile + ") and " + curr + " (" + currTile + ")");
-                return isValid;
-            }
-        }
-        return true;
     }
 
     private HashSet<Gene> floodTrack(Solution solution, StationTrack track){
@@ -246,6 +246,7 @@ public class Darwin {
     }
 
     private ArrayList<Agent> repopulateAgents(ArrayList<EvaluatedSolution> evaluatedSolutions, long seed){
+        var futureChildren =  new ArrayList<Callable<Agent>>();
         var selector =  new Random(seed);
         var exclude = new HashSet<Agent>();
         evaluatedSolutions.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
@@ -262,7 +263,7 @@ public class Darwin {
         while(newAgents.size() < Settings.MAX_AGENTS && !oldAgents.isEmpty()){
             int pi = 0;
             while(pi < oldAgents.size()-1){
-                if(rand.nextDouble() > Settings.CROSS_SKIP) break;
+                if(selector.nextDouble() > Settings.CROSS_SKIP) break;
                 pi++;
             }
             if(parentA == null){
@@ -282,20 +283,36 @@ public class Darwin {
                 genesB.put(new Transform(gene.getTransform()), gene);
             }
 
-            HashSet<Transform> mask = parentA.flood().stream().map(Gene::getTransform).collect(Collectors.toCollection(HashSet::new));
-            HashSet<Transform> maskB = parentB.flood().stream().map(Gene::getTransform).collect(Collectors.toCollection(HashSet::new));
+            HashSet<Transform> mask = parentA.flood().stream().parallel().map(Gene::getTransform).collect(Collectors.toCollection(HashSet::new));
+            HashSet<Transform> maskB = parentB.flood().stream().parallel().map(Gene::getTransform).collect(Collectors.toCollection(HashSet::new));
             mask.addAll(maskB);
             for(int j=0; j < Settings.MUTATION_RADIUS; j++){
                 mask = growPath(mask);
             }
 
-            var childA = finalizeAgent(parentA.solution().signer().evolve(genesB), selector.nextLong(), mask);
-            var childB = finalizeAgent(parentB.solution().signer().evolve(genesA), selector.nextLong(), mask);
 
-            newAgents.add(childA);
-            newAgents.add(childB);
+            final var aSeed = selector.nextLong();
+            final var bSeed = selector.nextLong();
+            final var fMask = mask;
+            final var fParentA = parentA;
+            final var fParentB = parentB;
+            final var fGenesA = genesA;
+            final var fGenesB = genesB;
+            futureChildren.add(() -> finalizeAgent(fParentA.solution().signer().evolve(fGenesB), aSeed, fMask));
+            futureChildren.add( () -> finalizeAgent(fParentB.solution().signer().evolve(fGenesA), bSeed, fMask));
+
             parentA = null;
         }
+
+        try {
+            var fchildren = executor.invokeAll(futureChildren);
+            for(var child: fchildren){
+                newAgents.add(child.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
         while(newAgents.size() > Settings.MAX_AGENTS){
             newAgents.removeLast();
         }

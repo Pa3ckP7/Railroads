@@ -1,9 +1,10 @@
 package models;
 
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Gene{
+public class Gene implements Serializable {
     private Transform transform;
     private Tile tile;
 

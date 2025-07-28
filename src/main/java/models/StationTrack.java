@@ -1,6 +1,8 @@
 package models;
 
-public class StationTrack {
+import java.io.Serializable;
+
+public class StationTrack implements Serializable {
     private Transform startpoint;
     private Transform endpoint;
 

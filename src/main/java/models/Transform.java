@@ -1,8 +1,9 @@
 package models;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Transform implements Comparable<Transform>{
+public class Transform implements Comparable<Transform>, Serializable {
 
     public Transform(int x, int y){
         this.x = x;
@@ -35,5 +36,13 @@ public class Transform implements Comparable<Transform>{
     @Override
     public String toString() {
         return "(" + x + ", " + y + ")";
+    }
+
+    public int[] mpjSerialize(){
+        return new int[]{x, y};
+    }
+
+    public static Transform mpjDeserialize(int[] data){
+        return new Transform(data[0], data[1]);
     }
 }

@@ -4,9 +4,10 @@ import dto.Solution;
 import railroads.Board;
 import railroads.Settings;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Agent {
+public class Agent implements Serializable {
     private TreeMap<Transform, Gene> genome;
 
     public Solution solve(Board board){

@@ -1,39 +1,60 @@
 package railroads;
 
 import dto.EvaluatedSolution;
-import dto.Solution;
-import dto.TrackEvalResult;
-import models.*;
 import dto.EvolutionResults;
+import dto.MPJScatterSettings;
+import dto.Solution;
+import models.*;
+import mpi.MPI;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Darwin {
+public class DarwinMPJ {
 
     private int generation = 0;
     private ArrayList<Agent> agents;
     private final Random rand;
     private Board initBoard;
 
-    public Darwin(long randomSeed) {
+    private int mpjRank;
+    private int mpjCount;
+
+    private MPJScatterSettings mpjScatterSettings;
+
+    public DarwinMPJ(long randomSeed) {
         this.agents = new ArrayList<>();
         this.rand = new Random(randomSeed);
+        mpjRank = MPI.COMM_WORLD.Rank();
+        mpjCount = MPI.COMM_WORLD.Size();
+        mpjScatterSettings = calculateScatterSettings();
         initGen0();
     }
 
     private void initGen0(){
         long board_seed = rand.nextLong();
         this.initBoard = new Board(board_seed);
-        for (int i = 0; i < Settings.MAX_AGENTS; i++) {
-            Agent agent = Agent.generateAgent(rand.nextLong());
-            this.agents.add(agent);
+        if(mpjRank==0){
+            for (int i = 0; i < Settings.MAX_AGENTS; i++) {
+                Agent agent = Agent.generateAgent(rand.nextLong());
+                this.agents.add(agent);
+            }
         }
     }
 
     public EvolutionResults evolve(){
-        var results = runAgents(this.agents);
-        var evaluatedResults = evaluateSolutions(results);
+
+
+        Agent[] myAgents = getMyAgents();
+
+        var agentbatch = new ArrayList<>(Arrays.asList(myAgents));
+        var results = runAgents(agentbatch);
+        var localEvaluatedResults = evaluateSolutions(results);
+
+        var evalresults = gatherSolutions(localEvaluatedResults.toArray(EvaluatedSolution[]::new));
+        if(mpjRank!=0) return null;
+        var evaluatedResults = new ArrayList<>(Arrays.asList(evalresults));
+
         evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
         var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
         generation++;
@@ -54,6 +75,31 @@ public class Darwin {
         );
     }
 
+    private Agent[] getMyAgents(){
+
+        Agent[] sendBuffer = null;
+        if (mpjRank == 0) {
+            sendBuffer = this.agents.toArray(Agent[]::new);
+        }
+
+        Agent[] agents = new Agent[mpjScatterSettings.counts()[mpjRank]];
+
+        MPI.COMM_WORLD.Scatterv(sendBuffer,0,mpjScatterSettings.counts(),mpjScatterSettings.displacementIndex(), MPI.OBJECT,
+                agents, 0, mpjScatterSettings.counts()[mpjRank], MPI.OBJECT, 0);
+
+        return agents;
+    }
+
+    private EvaluatedSolution[] gatherSolutions(EvaluatedSolution[] lResults){
+        EvaluatedSolution[] allSolution = null;
+        if(mpjRank == 0){
+            allSolution = new EvaluatedSolution[Settings.MAX_AGENTS];
+        }
+        MPI.COMM_WORLD.Gatherv(lResults, 0,mpjScatterSettings.counts()[mpjRank],
+                MPI.OBJECT, allSolution, 0, mpjScatterSettings.counts(),
+                mpjScatterSettings.displacementIndex(), MPI.OBJECT, 0);
+        return allSolution;
+    }
     private ArrayList<Solution> runAgents(ArrayList<Agent> agents){
         var solutions = new ArrayList<Solution>();
         for (Agent agent : agents) {
@@ -346,5 +392,20 @@ public class Darwin {
 
     public Board getInitBoard() {
         return initBoard;
+    }
+
+    private MPJScatterSettings calculateScatterSettings(){
+        int baseChunk = Settings.MAX_AGENTS / mpjCount;
+        int remainder = Settings.MAX_AGENTS % mpjCount;
+
+        int[] counts = new int[mpjCount];
+        int[] displs = new int[mpjCount];
+        int offset = 0;
+        for (int i = 0; i < mpjCount; i++) {
+            counts[i] = baseChunk + (i < remainder ? 1 : 0);
+            displs[i] = offset;
+            offset += counts[i];
+        }
+        return new MPJScatterSettings(counts, displs);
     }
 }

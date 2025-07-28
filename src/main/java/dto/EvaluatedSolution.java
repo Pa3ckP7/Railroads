@@ -2,6 +2,7 @@ package dto;
 
 import models.Gene;
 
+import java.io.Serializable;
 import java.util.HashSet;
 
 public record EvaluatedSolution (
@@ -10,4 +11,4 @@ public record EvaluatedSolution (
     Solution solution,
     boolean success,
     HashSet<Gene> flood
-    ){}
+    ) implements Serializable {}

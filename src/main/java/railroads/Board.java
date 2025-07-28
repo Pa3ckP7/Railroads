@@ -4,9 +4,10 @@ import models.Transform;
 import models.StationTrack;
 import models.Tile;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class Board {
+public class Board implements Serializable {
     private final short WIDTH, HEIGHT;
     private final Tile[] board;
     private final int STATION_COUNT;
