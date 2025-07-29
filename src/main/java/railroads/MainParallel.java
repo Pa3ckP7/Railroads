@@ -2,26 +2,64 @@ package railroads;
 
 import dto.EvolutionResults;
 import graphics.RailroadsWindow;
+import logging.KVHandlerFactory;
+import logging.KVLoggerFactory;
+import timing.TimerManager;
 
 import javax.swing.*;
+import java.util.Random;
+import java.util.logging.Level;
 
 public class MainParallel {
     public static void main(String[] args) {
-        long seed = 19012025;
+        KVLoggerFactory.addGlobalHandler("console", KVHandlerFactory.getConsoleHandler());
+        var gLogger = KVLoggerFactory.getGlobalLogger(Main.class);
+        long masterSeed = 19012025;
+        var mrng  = new Random(masterSeed);
+        //RailroadsWindow window = new RailroadsWindow();
+        for(int i = 0; i < 10; i++){
+            gLogger.info("Starting run " + i);
+            var scope = KVLoggerFactory.createScoped("test"+i, false);
+            try {
+                scope.addHandler("file", KVHandlerFactory.getFileHandler("test" + i));
+            }catch (Exception e){
+                gLogger.log(Level.SEVERE, String.format("File handler failed to add for %d: %s", i,e.getMessage()), e);
+            }
+            var logger = scope.getLogger(Main.class, "milestone");
+            var seed = mrng.nextLong();
+            DarwinParallel darwin = new DarwinParallel(scope, seed);
+            Board init_board = darwin.getInitBoard();
 
-        DarwinParallel darwin = new DarwinParallel(seed);
-        Board init_board = darwin.getInitBoard();
 
-        //Event dispatch thread apparently modifying the GUI from main is a bad idea. And so is having darwin on the main thread;
-        SwingUtilities.invokeLater(() -> {
-            RailroadsWindow window = new RailroadsWindow(init_board);
-
-            new Thread(() -> {
-                while(true){
-                    EvolutionResults results = darwin.evolve();
-                    SwingUtilities.invokeLater(() -> window.updateAgentDisplay(results));
+            //System.out.println("Gen 0");
+            long lastScore = Long.MAX_VALUE;
+            int genCounter = 0;
+            TimerManager.startTimer("milestone");
+            EvolutionResults res = null;
+            while(genCounter < 200){
+                res = darwin.evolve();
+                var curScore = res.bestSolution().evaluation();
+                if(curScore != lastScore){
+                    lastScore = curScore;
+                    //gLogger.info("Best score is " + curScore);
+                    genCounter = 0;
                 }
-            }).start();
-        });
+                genCounter++;
+                if(res.generation() == 100) logger.info(String.format("M100\t%d", TimerManager.lapTimer("milestone")));
+                if(res.generation() == 500) logger.info(String.format("M500\t%d", TimerManager.lapTimer("milestone")));
+                if(res.generation() == 1000) logger.info(String.format("M1000\t%d", TimerManager.lapTimer("milestone")));
+                if(res.generation()%100 == 0) gLogger.info("run"+i+" gen "+res.generation());
+                //if(res.generation() == 800)break;
+                //window.updateAgentDisplay(res);
+            }
+            var ftime = TimerManager.stopTimer("milestone");
+            logger.info(String.format("MEND%d\t%d", res.generation(), ftime));
+            gLogger.info("Ended after " + res.generation() + " generations");
+            gLogger.info(String.format("Needed %.3fms", ftime/1_000_000_000.0));
+            darwin.shutdown();
+        }
+
+
     }
+
 }

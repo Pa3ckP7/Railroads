@@ -9,7 +9,6 @@ public class TimerManager {
         Timer timer = timers.computeIfAbsent(name, k -> new Timer());
         timer.start();
     }
-
     public static long pauseTimer(String name){
         Timer timer = timers.get(name);
         if(timer == null) throw new IllegalArgumentException("Timer doesn't exist");
@@ -22,7 +21,6 @@ public class TimerManager {
         timers.remove(name);
         return ret;
     }
-
     public static long lapTimer(String name){
         Timer timer = timers.get(name);
         if(timer == null) throw new IllegalArgumentException("Timer doesn't exist");

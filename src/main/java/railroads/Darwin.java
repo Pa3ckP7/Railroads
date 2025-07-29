@@ -3,10 +3,13 @@ package railroads;
 import dto.EvaluatedSolution;
 import dto.Solution;
 import dto.TrackEvalResult;
+import logging.KVLoggerFactory;
 import models.*;
 import dto.EvolutionResults;
+import timing.TimerManager;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Darwin {
@@ -16,7 +19,10 @@ public class Darwin {
     private final Random rand;
     private Board initBoard;
 
-    public Darwin(long randomSeed) {
+    private Logger logger;
+
+    public Darwin(KVLoggerFactory loggerFactory,long randomSeed) {
+        this.logger = loggerFactory.getLogger(Darwin.class);
         this.agents = new ArrayList<>();
         this.rand = new Random(randomSeed);
         initGen0();
@@ -32,10 +38,17 @@ public class Darwin {
     }
 
     public EvolutionResults evolve(){
+        TimerManager.startTimer("gen");
+        TimerManager.startTimer("run");
         var results = runAgents(this.agents);
+        logger.info(String.format("RUN\t%d",TimerManager.stopTimer("run")));
+        TimerManager.startTimer("eval");
         var evaluatedResults = evaluateSolutions(results);
+        logger.info(String.format("EVL\t%d",TimerManager.stopTimer("eval")));
         evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
+        TimerManager.startTimer("rep");
         var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
+        logger.info(String.format("REP\t%d",TimerManager.stopTimer("rep")));
         generation++;
         agents = newGeneration;
         var winner = evaluatedResults.stream().filter(EvaluatedSolution::success).findFirst();
@@ -47,6 +60,7 @@ public class Darwin {
         if(allSuccess){
             System.out.println("ALL SUCCESS");
         }
+        logger.info(String.format("GEN\t%d",TimerManager.stopTimer("gen")));
         return new EvolutionResults(
                 generation,
                 best,

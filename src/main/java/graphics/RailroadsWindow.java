@@ -18,7 +18,7 @@ public class RailroadsWindow extends JFrame {
 
     long minAllTime = -1;
 
-    public RailroadsWindow(Board board) {
+    public RailroadsWindow() {
         super("Railroads");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(650, 600);

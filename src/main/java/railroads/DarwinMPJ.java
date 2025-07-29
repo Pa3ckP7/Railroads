@@ -4,10 +4,13 @@ import dto.EvaluatedSolution;
 import dto.EvolutionResults;
 import dto.MPJScatterSettings;
 import dto.Solution;
+import logging.KVLoggerFactory;
 import models.*;
 import mpi.MPI;
+import timing.TimerManager;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class DarwinMPJ {
@@ -19,15 +22,18 @@ public class DarwinMPJ {
 
     private int mpjRank;
     private int mpjCount;
-
+    private Logger logger = null;
     private MPJScatterSettings mpjScatterSettings;
 
-    public DarwinMPJ(long randomSeed) {
+    public DarwinMPJ(KVLoggerFactory loggerFactory, long randomSeed) {
         this.agents = new ArrayList<>();
         this.rand = new Random(randomSeed);
         mpjRank = MPI.COMM_WORLD.Rank();
         mpjCount = MPI.COMM_WORLD.Size();
         mpjScatterSettings = calculateScatterSettings();
+        if(mpjRank==0){
+            logger = loggerFactory.getLogger("DarwinMPJ");
+        }
         initGen0();
     }
 
@@ -48,31 +54,49 @@ public class DarwinMPJ {
         Agent[] myAgents = getMyAgents();
 
         var agentbatch = new ArrayList<>(Arrays.asList(myAgents));
+        if(mpjRank == 0){
+            TimerManager.startTimer("gen");
+            TimerManager.startTimer("run");
+        }
         var results = runAgents(agentbatch);
+        if(mpjRank == 0){
+            logger.info(String.format("RUN\t%d",TimerManager.stopTimer("run")));
+            TimerManager.startTimer("eval");
+        }
         var localEvaluatedResults = evaluateSolutions(results);
 
         var evalresults = gatherSolutions(localEvaluatedResults.toArray(EvaluatedSolution[]::new));
-        if(mpjRank!=0) return null;
-        var evaluatedResults = new ArrayList<>(Arrays.asList(evalresults));
+        if(mpjRank == 0){
+            logger.info(String.format("EVL\t%d",TimerManager.stopTimer("eval")));
+        }
+        EvolutionResults evoResults = null;
+        if(mpjRank==0) {
+            var evaluatedResults = new ArrayList<>(Arrays.asList(evalresults));
 
-        evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
-        var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
-        generation++;
-        agents = newGeneration;
-        var winner = evaluatedResults.stream().filter(EvaluatedSolution::success).findFirst();
-        EvaluatedSolution best = evaluatedResults.getFirst();
-        if(winner.isPresent()){
-            best = winner.get();
+            evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
+            TimerManager.startTimer("rep");
+            var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
+            logger.info(String.format("REP\t%d",TimerManager.stopTimer("rep")));
+            generation++;
+            agents = newGeneration;
+            var winner = evaluatedResults.stream().filter(EvaluatedSolution::success).findFirst();
+            EvaluatedSolution best = evaluatedResults.getFirst();
+            if (winner.isPresent()) {
+                best = winner.get();
+            }
+            boolean allSuccess = evaluatedResults.stream().allMatch(EvaluatedSolution::success);
+            if (allSuccess) {
+                System.out.println("ALL SUCCESS");
+            }
+            evoResults = new EvolutionResults(generation, best, evaluatedResults.getLast());
+            logger.info(String.format("GEN\t%d",TimerManager.stopTimer("gen")));
         }
-        boolean allSuccess = evaluatedResults.stream().allMatch(EvaluatedSolution::success);
-        if(allSuccess){
-            System.out.println("ALL SUCCESS");
+        EvolutionResults[] buff = new EvolutionResults[1];
+        if(mpjRank==0){
+            buff[0] = evoResults;
         }
-        return new EvolutionResults(
-                generation,
-                best,
-                evaluatedResults.getLast()
-        );
+        MPI.COMM_WORLD.Bcast(buff, 0, 1, MPI.OBJECT, 0);
+        return buff[0];
     }
 
     private Agent[] getMyAgents(){

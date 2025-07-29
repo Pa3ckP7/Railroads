@@ -12,7 +12,7 @@ public class KVLoggerFactory implements AutoCloseable {
 
     private CopyOnWriteArrayList<Handler> inheritedHandlers = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, Handler> handlers = new ConcurrentHashMap<String, Handler>();
-    private static final KVLoggerFactory globalInstance = new KVLoggerFactory(String.format("%04x",(int)(Math.random()*0x10000)));
+    private static final KVLoggerFactory globalInstance = new KVLoggerFactory(String.format("global%04x",(int)(Math.random()*0x10000)));
     private final String scopeName;
 
 
