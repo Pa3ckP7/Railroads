@@ -19,7 +19,8 @@ public class Main {
         var gLogger = KVLoggerFactory.getGlobalLogger(Main.class);
         long masterSeed = 19012025;
         var mrng  = new Random(masterSeed);
-        //RailroadsWindow window = new RailroadsWindow();
+        RailroadsWindow window;
+        if(Settings.ENABLE_GUI) window = new RailroadsWindow();
         for(int i = 0; i < 10; i++){
             gLogger.info("Starting run " + i);
             var scope = KVLoggerFactory.createScoped("test"+i, false);
@@ -48,7 +49,9 @@ public class Main {
                     genCounter = 0;
                 }
                 genCounter++;
-                //window.updateAgentDisplay(res);
+                if(Settings.ENABLE_GUI){
+                    window.updateAgentDisplay(res);
+                }
                 if(res.generation() == 100) logger.info(String.format("M100\t%d", TimerManager.lapTimer("milestone")));
                 if(res.generation() == 500) logger.info(String.format("M500\t%d", TimerManager.lapTimer("milestone")));
                 if(res.generation() == 1000) logger.info(String.format("M250\t%d", TimerManager.lapTimer("milestone")));

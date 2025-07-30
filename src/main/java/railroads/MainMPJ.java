@@ -22,7 +22,9 @@ public class MainMPJ {
         }
         var gLogger = KVLoggerFactory.getGlobalLogger(MainMPJ.class);
 
-
+        RailroadsWindow window;
+        if (rank == 0) window = new RailroadsWindow();
+        else window = null;
 
         for(int i=0; i<10; i++) {
             gLogger.info("Starting run " + i);
@@ -38,9 +40,7 @@ public class MainMPJ {
             var seed = mrng.nextLong();
             DarwinMPJ darwin = new DarwinMPJ(scope,seed);
             Board init_board = darwin.getInitBoard();
-//            RailroadsWindow window;
-//            if (rank == 0) window = new RailroadsWindow();
-//            else window = null;
+
 
             //System.out.println("Gen 0");
             long lastScore = Long.MAX_VALUE;
@@ -50,9 +50,9 @@ public class MainMPJ {
             while (genCounter < 200) {
                 MPI.COMM_WORLD.Barrier();
                 res = darwin.evolve();
-//                if (rank == 0) {
-//                    window.updateAgentDisplay(res);
-//                }
+                if (Settings.ENABLE_GUI && rank == 0) {
+                    window.updateAgentDisplay(res);
+                }
                 var curScore = res.bestSolution().evaluation();
                 if (curScore != lastScore) {
                     lastScore = curScore;
