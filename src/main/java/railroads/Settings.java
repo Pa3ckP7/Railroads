@@ -1,7 +1,7 @@
 package railroads;
 
 public class Settings {
-    public final static boolean ENABLE_GUI = false;
+    public final static boolean ENABLE_GUI = true;
     public final static short BOARD_WIDTH = 50;
     public final static short BOARD_HEIGHT = 50;
     public final static float AGENT_FILL = 0.5f;
