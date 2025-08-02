@@ -54,29 +54,29 @@ public class DarwinMPJ {
         Agent[] myAgents = getMyAgents();
 
         var agentbatch = new ArrayList<>(Arrays.asList(myAgents));
-        if(mpjRank == 0){
-            TimerManager.startTimer("gen");
-            TimerManager.startTimer("run");
-        }
+//        if(mpjRank == 0){
+//            TimerManager.startTimer("gen");
+//            TimerManager.startTimer("run");
+//        }
         var results = runAgents(agentbatch);
-        if(mpjRank == 0){
-            logger.info(String.format("RUN\t%d",TimerManager.stopTimer("run")));
-            TimerManager.startTimer("eval");
-        }
+//        if(mpjRank == 0){
+//            logger.info(String.format("RUN\t%d",TimerManager.stopTimer("run")));
+//            TimerManager.startTimer("eval");
+//        }
         var localEvaluatedResults = evaluateSolutions(results);
 
         var evalresults = gatherSolutions(localEvaluatedResults.toArray(EvaluatedSolution[]::new));
-        if(mpjRank == 0){
-            logger.info(String.format("EVL\t%d",TimerManager.stopTimer("eval")));
-        }
+//        if(mpjRank == 0){
+//            logger.info(String.format("EVL\t%d",TimerManager.stopTimer("eval")));
+//        }
         EvolutionResults evoResults = null;
         if(mpjRank==0) {
             var evaluatedResults = new ArrayList<>(Arrays.asList(evalresults));
 
             evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
-            TimerManager.startTimer("rep");
+//            TimerManager.startTimer("rep");
             var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
-            logger.info(String.format("REP\t%d",TimerManager.stopTimer("rep")));
+//            logger.info(String.format("REP\t%d",TimerManager.stopTimer("rep")));
             generation++;
             agents = newGeneration;
             var winner = evaluatedResults.stream().filter(EvaluatedSolution::success).findFirst();
@@ -89,7 +89,7 @@ public class DarwinMPJ {
                 System.out.println("ALL SUCCESS");
             }
             evoResults = new EvolutionResults(generation, best, evaluatedResults.getLast());
-            logger.info(String.format("GEN\t%d",TimerManager.stopTimer("gen")));
+//            logger.info(String.format("GEN\t%d",TimerManager.stopTimer("gen")));
         }
         EvolutionResults[] buff = new EvolutionResults[1];
         if(mpjRank==0){

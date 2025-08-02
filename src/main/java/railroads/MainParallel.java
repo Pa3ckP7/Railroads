@@ -24,6 +24,7 @@ public class MainParallel {
         long lastScore = Long.MAX_VALUE;
         int genCounter = 0;
         EvolutionResults res = null;
+        TimerManager.startTimer("milestone");
         while (genCounter < 200) {
             res = darwin.evolve();
             var curScore = res.bestSolution().evaluation();
@@ -37,7 +38,7 @@ public class MainParallel {
             if (res.generation() % 100 == 0) gLogger.info("gen " + res.generation());
         }
         darwin.shutdown();
-        gLogger.info("Done.");
+        gLogger.info(String.format("Done in %.2f ms", TimerManager.stopTimer("milestone") / 1_000_000.0));
     }
 
 

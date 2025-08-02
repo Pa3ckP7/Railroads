@@ -42,7 +42,7 @@ public class Main {
             }
             if (res.generation() % 100 == 0) gLogger.info("gen " + res.generation());
         }
-        gLogger.info("Done.");
+        gLogger.info(String.format("Done in %.2f ms", TimerManager.stopTimer("milestone") / 1_000_000.0));
     }
 
 

@@ -38,17 +38,17 @@ public class Darwin {
     }
 
     public EvolutionResults evolve(){
-        TimerManager.startTimer("gen");
-        TimerManager.startTimer("run");
+//        TimerManager.startTimer("gen");
+//        TimerManager.startTimer("run");
         var results = runAgents(this.agents);
-        logger.info(String.format("RUN\t%d",TimerManager.stopTimer("run")));
-        TimerManager.startTimer("eval");
+//        logger.info(String.format("RUN\t%d",TimerManager.stopTimer("run")));
+//        TimerManager.startTimer("eval");
         var evaluatedResults = evaluateSolutions(results);
-        logger.info(String.format("EVL\t%d",TimerManager.stopTimer("eval")));
+//        logger.info(String.format("EVL\t%d",TimerManager.stopTimer("eval")));
         evaluatedResults.sort(Comparator.comparingLong(EvaluatedSolution::evaluation));
-        TimerManager.startTimer("rep");
+//        TimerManager.startTimer("rep");
         var newGeneration = repopulateAgents(evaluatedResults, rand.nextLong());
-        logger.info(String.format("REP\t%d",TimerManager.stopTimer("rep")));
+//        logger.info(String.format("REP\t%d",TimerManager.stopTimer("rep")));
         generation++;
         agents = newGeneration;
         var winner = evaluatedResults.stream().filter(EvaluatedSolution::success).findFirst();
@@ -60,7 +60,7 @@ public class Darwin {
         if(allSuccess){
             System.out.println("ALL SUCCESS");
         }
-        logger.info(String.format("GEN\t%d",TimerManager.stopTimer("gen")));
+//        logger.info(String.format("GEN\t%d",TimerManager.stopTimer("gen")));
         return new EvolutionResults(
                 generation,
                 best,

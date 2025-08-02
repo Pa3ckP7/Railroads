@@ -34,7 +34,9 @@ public class MainMPJ {
 
         long lastScore = Long.MAX_VALUE;
         int genCounter = 0;
-        TimerManager.startTimer("milestone");
+        if(rank == 0){
+            TimerManager.startTimer("milestone");
+        }
         EvolutionResults res = null;
         while (genCounter < 200) {
             MPI.COMM_WORLD.Barrier();
@@ -53,7 +55,8 @@ public class MainMPJ {
             }
 
         }
-        if(rank==0)gLogger.info("Done.");
+        if(rank==0)
+            gLogger.info(String.format("Done in %.2f ms", TimerManager.stopTimer("milestone") / 1_000_000.0));
         MPI.Finalize();
     }
 }
